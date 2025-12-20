@@ -9,11 +9,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class DepositResponse {
+public class DepositMetadataResponse {
 
-    private String depositId;
-    private String checkoutType;
-    private String redirectUrl;
-    private PaymentInfoResponse paymentInfo;
+    private String beneficiaryName;
+    private String payerName;
+    private String clabe;
 
 }

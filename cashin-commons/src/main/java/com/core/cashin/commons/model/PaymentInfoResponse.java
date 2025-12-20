@@ -18,5 +18,6 @@ public class PaymentInfoResponse {
     private String amount;
     private String currency;
     private String createdAt;
+    private DepositMetadataResponse metadata;
 
 }

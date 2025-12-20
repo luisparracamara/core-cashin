@@ -10,11 +10,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 @Slf4j
-public class StripeRedirector implements PaymentRedirector {
+public class MercadoPagoCheckoutPro implements PaymentRedirector {
 
     @Override
     public ConnectorEnum getConnector() {
-        return ConnectorEnum.CONNECTOR;
+        return ConnectorEnum.MERCADO_PAGO_CHECKOUT_PRO;
     }
 
     @Override
@@ -24,9 +24,7 @@ public class StripeRedirector implements PaymentRedirector {
 
     @Override
     public DepositResponse create(DepositRequest request) {
-        log.debug("[StripeRedirector] StripeRedirector {}", getConnector());
-
-        // lógica Stripe
+        log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro {}", getConnector());
 
         return null;
     }

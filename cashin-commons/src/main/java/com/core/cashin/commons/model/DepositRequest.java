@@ -30,6 +30,12 @@ public class DepositRequest {
     @Valid
     private Payer payer;
 
+    private String description;
+    private String backUrl;
+    private String successUrl;
+    private String errorUrl;
+    private String notificationUrl;
+
     private MerchantRequest merchant;
     private String connectorName;
     private Map<String, String> gatewayMetadata;

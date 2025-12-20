@@ -1,5 +1,6 @@
 package com.core.cashin.commons.constants;
 
+import com.core.cashin.commons.exception.NotFoundException;
 import lombok.Getter;
 
 import java.util.Arrays;
@@ -10,7 +11,8 @@ public enum ConnectorEnum {
     PAYPAL("PayPal"),
     STRIPE("Stripe"),
     MERCADOPAGO("Mercado Pago"),
-    CONNECTOR("conenctor");
+    CONNECTOR("connector"),
+    MERCADO_PAGO_CHECKOUT_PRO("MercadoPagoCheckoutPro");
 
     private final String name;
 
@@ -22,7 +24,7 @@ public enum ConnectorEnum {
         return Arrays.stream(values())
                 .filter(c -> c.name.equalsIgnoreCase(name))
                 .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Unknown GatewayConnector displayName: " + name));
+                .orElseThrow(() -> new NotFoundException("Unknown GatewayConnector: " + name));
     }
 
 }

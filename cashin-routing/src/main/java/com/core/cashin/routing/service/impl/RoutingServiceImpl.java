@@ -33,19 +33,15 @@ public class RoutingServiceImpl implements RoutingService {
 
     @Override
     public DepositResponse createDeposit(DepositRequest request, Map<String, String> headers) {
-
         DepositRequest depositRequest = retrieveCashinRoutingRule(request, headers);
         ConnectorEnum connector = ConnectorEnum.fromDisplayName(depositRequest.getConnectorName());
         log.debug("[RoutingServiceImpl] ConnectorEnum result {}", connector);
-
-        routeDeposit(connector, request);
-
-        return null;
+        return routeDeposit(connector, request);
     }
 
     private DepositRequest retrieveCashinRoutingRule(DepositRequest request, Map<String, String> headers) {
         List<RoutingResultProjection> routingResultDTO = routingRepository.resolveRouting(request.getCountry(),
-                request.getPaymentMethod(), headers.get("login-id"), headers.get("secret-key"));
+                request.getPaymentMethod(), headers.get("login-id"), headers.get("secret-key"), request.getCurrency());
 
         if (routingResultDTO.isEmpty()) {
             throw new NotFoundException("Cashing routing rule was not found");
@@ -67,10 +63,10 @@ public class RoutingServiceImpl implements RoutingService {
     }
 
     //PaymentRedirector es capaz de usar la interfaz por polimorfismo
-    public void routeDeposit(ConnectorEnum connector, DepositRequest request) {
-         resolver
+    public DepositResponse routeDeposit(ConnectorEnum connector, DepositRequest request) {
+         return resolver
                  .resolve(connector) // devuelve a donde se redirige
-                 .redirect(request); // redirige
+                 .create(request); // redirige
     }
 
 }

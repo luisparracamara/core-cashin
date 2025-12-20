@@ -19,6 +19,7 @@ public interface RoutingRepository extends JpaRepository<RoutingGateway, Long> {
       m.name AS merchantName,
       g.id AS gatewayId,
       g.connectorName AS connectorName,
+      gpm.currency AS currency,
       gm.metaKey AS metadataKey,
       gm.metaValue AS metadataValue
     FROM Merchant m
@@ -32,6 +33,8 @@ public interface RoutingRepository extends JpaRepository<RoutingGateway, Long> {
        AND pm.status = 'ENABLED'
     JOIN Gateway g
         ON g.id = rg.gateway.id
+    JOIN GatewayPaymentMethod gpm
+       ON gpm.gateway.id = g.id AND gpm.paymentMethod.id = pm.id AND gpm.currency = :currency
     LEFT JOIN g.metadata gm
     WHERE m.loginId = :loginId
       AND m.secretKey = :secretKey
@@ -41,7 +44,8 @@ public interface RoutingRepository extends JpaRepository<RoutingGateway, Long> {
             String country,
             String code,
             String loginId,
-            String secretKey
+            String secretKey,
+            String currency
     );
 
 

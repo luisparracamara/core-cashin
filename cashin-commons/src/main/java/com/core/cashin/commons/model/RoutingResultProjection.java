@@ -13,4 +13,6 @@ public interface RoutingResultProjection {
 
     String getMetadataKey();
     String getMetadataValue();
+
+    String getCurrency();
 }
