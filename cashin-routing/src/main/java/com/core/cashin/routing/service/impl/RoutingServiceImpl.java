@@ -12,6 +12,7 @@ import com.core.cashin.commons.service.PaymentOperationService;
 import com.core.cashin.routing.mapper.RoutingMapper;
 import com.core.cashin.routing.repository.RoutingRepository;
 import com.core.cashin.routing.service.RoutingService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -44,11 +45,11 @@ public class RoutingServiceImpl implements RoutingService {
     }
 
     @Override
-    public DepositResponse createDeposit(DepositRequest request, Map<String, String> headers) {
+    public DepositResponse createDeposit(DepositRequest request, HttpServletRequest httpServletRequest, Map<String, String> headers) {
         DepositRequest depositRequest = retrieveCashinRoutingRule(request, headers);
         ConnectorEnum connector = ConnectorEnum.fromDisplayName(depositRequest.getConnectorName());
         log.debug("[RoutingServiceImpl] ConnectorEnum result {}", connector);
-        return routeDeposit(connector, request);
+        return routeDeposit(connector, request, httpServletRequest);
     }
 
     @Override
@@ -80,10 +81,10 @@ public class RoutingServiceImpl implements RoutingService {
     }
 
     //PaymentRedirector es capaz de usar la interfaz por polimorfismo
-    private DepositResponse routeDeposit(ConnectorEnum connector, DepositRequest request) {
+    private DepositResponse routeDeposit(ConnectorEnum connector, DepositRequest request, HttpServletRequest httpServletRequest) {
         PayerEntity payerEntity = cashinMapper.buildPayerEntity(request);
         PaymentEntity paymentEntity = cashinMapper.buildPaymentEntity(request, payerEntity, UUID.randomUUID().toString(),
-                LocalDateTime.now());
+                LocalDateTime.now(), httpServletRequest);
         paymentOperationService.savePaymentCashin(paymentEntity, payerEntity);
         return resolver
                 .resolve(connector) // devuelve a donde se redirige

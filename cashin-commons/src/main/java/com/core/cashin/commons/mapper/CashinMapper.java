@@ -6,8 +6,10 @@ import com.core.cashin.commons.entity.Merchant;
 import com.core.cashin.commons.entity.PayerEntity;
 import com.core.cashin.commons.entity.PaymentEntity;
 import com.core.cashin.commons.model.DepositRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 
+import java.net.InetAddress;
 import java.time.LocalDateTime;
 
 @Component
@@ -23,7 +25,8 @@ public class CashinMapper {
                 .build();
     }
 
-    public PaymentEntity buildPaymentEntity(DepositRequest request, PayerEntity payerEntity, String idPayment, LocalDateTime now) {
+    public PaymentEntity buildPaymentEntity(DepositRequest request, PayerEntity payerEntity, String idPayment,
+                                            LocalDateTime now, HttpServletRequest httpServletRequest) {
 
         Merchant merchant = Merchant.builder()
                 .id(request.getMerchant().getMerchantId())
@@ -46,12 +49,31 @@ public class CashinMapper {
                 .createdAt(now)
                 .updatedAt(now)
                 .status(PaymentStatusEnum.CREATED)
-                .ip("TEST IP")
+                .ip(validateIp(request, httpServletRequest))
                 .transactionId(idPayment)
                 .gateway(gateway)
                 .merchant(merchant)
                 .payerEntity(payerEntity)
                 .build();
+    }
+
+
+    private String validateIp(DepositRequest request, HttpServletRequest httpServletRequest) {
+        String ip = request.getIp();
+        if (ip != null && !ip.isBlank() && isValidIp(ip)) {
+            return ip;
+        }
+
+        return httpServletRequest.getRemoteAddr();
+    }
+
+    private boolean isValidIp(String ip) {
+        try {
+            InetAddress address = InetAddress.getByName(ip);
+            return address != null;
+        } catch (Exception e) {
+            return false;
+        }
     }
 
 

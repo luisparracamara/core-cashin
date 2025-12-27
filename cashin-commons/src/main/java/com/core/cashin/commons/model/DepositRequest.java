@@ -36,6 +36,7 @@ public class DepositRequest {
     private String backUrl;
     private String successUrl;
     private String errorUrl;
+    private String ip;
     private String notificationUrl;
     private String date;
     private Long gatewayId;
