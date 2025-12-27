@@ -6,4 +6,8 @@ public class InternalServerException extends DomainException {
         super(message);
     }
 
+    public InternalServerException(String message, Throwable ex) {
+        super(message, ex);
+    }
+
 }

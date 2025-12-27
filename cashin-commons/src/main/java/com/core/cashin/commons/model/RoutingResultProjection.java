@@ -15,4 +15,7 @@ public interface RoutingResultProjection {
     String getMetadataValue();
 
     String getCurrency();
+
+    String getPaymentMethodName();
+
 }

@@ -1,7 +1,9 @@
-package com.core.cashin.routing.utils;
+package com.core.cashin.commons.utils;
 
 import com.core.cashin.commons.exception.InternalServerException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -17,6 +19,8 @@ public class Utils {
 
     public String toJson(Object obj) {
         try {
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             return mapper.writeValueAsString(obj);
         } catch (Exception e) {
             log.error("Failed to serialize object to JSON {}", e.getMessage());

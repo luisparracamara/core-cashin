@@ -1,4 +1,4 @@
-package com.core.cashin.routing.entity;
+package com.core.cashin.commons.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RoutingRule {
+public class RoutingRuleEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

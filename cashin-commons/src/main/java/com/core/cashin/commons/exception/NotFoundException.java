@@ -6,4 +6,8 @@ public class NotFoundException extends DomainException {
         super(message);
     }
 
+    public NotFoundException(String message, Throwable ex) {
+        super(message, ex);
+    }
+
 }

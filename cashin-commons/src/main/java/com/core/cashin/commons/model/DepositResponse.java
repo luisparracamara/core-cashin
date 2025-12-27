@@ -14,6 +14,7 @@ public class DepositResponse {
     private String depositId;
     private String checkoutType;
     private String redirectUrl;
+    private String redirectUrlSandbox;
     private PaymentInfoResponse paymentInfo;
 
 }

@@ -1,6 +1,6 @@
 package com.core.cashin.routing.repository;
 
-import com.core.cashin.routing.entity.Gateway;
+import com.core.cashin.commons.entity.Gateway;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

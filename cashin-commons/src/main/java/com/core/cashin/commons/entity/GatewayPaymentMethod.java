@@ -1,4 +1,4 @@
-package com.core.cashin.routing.entity;
+package com.core.cashin.commons.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

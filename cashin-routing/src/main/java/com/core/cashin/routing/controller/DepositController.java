@@ -3,7 +3,7 @@ package com.core.cashin.routing.controller;
 import com.core.cashin.commons.model.DepositRequest;
 import com.core.cashin.commons.model.DepositResponse;
 import com.core.cashin.routing.service.RoutingService;
-import com.core.cashin.routing.utils.Utils;
+import com.core.cashin.commons.utils.Utils;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.core.cashin.routing.entity;
+package com.core.cashin.commons.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -31,6 +31,6 @@ public class Gateway {
     private String merchant;
 
     @OneToMany(mappedBy = "gateway", fetch = FetchType.LAZY)
-    private List<GatewayMetadata> metadata;
+    private List<GatewayMetadataEntity> metadata;
 
 }

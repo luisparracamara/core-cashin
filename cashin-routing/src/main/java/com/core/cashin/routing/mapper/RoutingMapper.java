@@ -10,7 +10,8 @@ import java.util.Map;
 @Component
 public class RoutingMapper {
 
-    public DepositRequest depositRequestMapper(DepositRequest request, RoutingResultProjection routingResultDTO, Map<String, String> metadata) {
+    public DepositRequest depositRequestMapper(DepositRequest request, RoutingResultProjection
+                                                       routingResultDTO, Map<String, String> metadata, Map<String, String> headers) {
         MerchantRequest merchantRequest  = MerchantRequest.builder()
                 .merchantId(routingResultDTO.getMerchantId())
                 .merchantName(routingResultDTO.getMerchantName())
@@ -19,6 +20,9 @@ public class RoutingMapper {
         request.setMerchant(merchantRequest);
         request.setConnectorName(routingResultDTO.getConnectorName());
         request.setGatewayMetadata(metadata);
+        request.setDate(headers.get("x-date"));
+        request.setPaymentMethodName(routingResultDTO.getPaymentMethodName());
+        request.setGatewayId(routingResultDTO.getGatewayId());
 
         return request;
     }

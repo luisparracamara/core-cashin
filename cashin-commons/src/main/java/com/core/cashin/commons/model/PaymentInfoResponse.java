@@ -12,7 +12,6 @@ import lombok.NoArgsConstructor;
 public class PaymentInfoResponse {
 
     private String type;
-    private String result;
     private String paymentMethod;
     private String paymentMethodName;
     private String amount;

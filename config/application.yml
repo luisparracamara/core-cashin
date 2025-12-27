@@ -25,3 +25,10 @@ spring:
       hibernate:
         # Specifies the MySQL Dialect for Hibernate
         dialect: org.hibernate.dialect.MySQLDialect
+
+jobs:
+  created-to-cancelled:
+    cron: "0 0 */8 * * *"
+  pending-to-cancel:
+    cron: "0 0/10 0 */3 * *"
+    zone: America/Mexico_City

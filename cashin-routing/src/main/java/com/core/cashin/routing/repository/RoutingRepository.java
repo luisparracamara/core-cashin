@@ -1,7 +1,7 @@
 package com.core.cashin.routing.repository;
 
 import com.core.cashin.commons.model.RoutingResultProjection;
-import com.core.cashin.routing.entity.RoutingGateway;
+import com.core.cashin.commons.entity.RoutingGatewayEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
@@ -9,12 +9,13 @@ import org.springframework.stereotype.Repository;
 import java.util.List;
 
 @Repository
-public interface RoutingRepository extends JpaRepository<RoutingGateway, Long> {
+public interface RoutingRepository extends JpaRepository<RoutingGatewayEntity, Long> {
 
     @Query("""
     SELECT
       pm.id AS paymentMethodId,
       pm.code AS paymentCode,
+      pm.name AS paymentMethodName,
       m.id AS merchantId,
       m.name AS merchantName,
       g.id AS gatewayId,
@@ -23,9 +24,9 @@ public interface RoutingRepository extends JpaRepository<RoutingGateway, Long> {
       gm.metaKey AS metadataKey,
       gm.metaValue AS metadataValue
     FROM Merchant m
-    JOIN RoutingGateway rg
+    JOIN RoutingGatewayEntity rg
         ON rg.merchant.id = m.id AND rg.status = 'ENABLED'
-    JOIN RoutingRule rr
+    JOIN RoutingRuleEntity rr
         ON rr.id = rg.routingRule.id AND rr.country = :country
     JOIN PaymentMethod pm
         ON pm.id = rr.paymentMethod.id

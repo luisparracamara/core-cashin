@@ -27,6 +27,8 @@ public class DepositRequest {
     @NotBlank(message = "paymentMethod value is needed for a deposit")
     private String paymentMethod;
 
+    private String paymentMethodName;
+
     @Valid
     private Payer payer;
 
@@ -35,6 +37,8 @@ public class DepositRequest {
     private String successUrl;
     private String errorUrl;
     private String notificationUrl;
+    private String date;
+    private Long gatewayId;
 
     private MerchantRequest merchant;
     private String connectorName;

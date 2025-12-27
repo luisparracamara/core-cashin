@@ -1,4 +1,4 @@
-package com.core.cashin.routing.entity;
+package com.core.cashin.commons.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RoutingGateway {
+public class RoutingGatewayEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,7 +27,7 @@ public class RoutingGateway {
     // 🔹 Routing Rule
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "fk_rg_routing_rule_id", nullable = false)
-    private RoutingRule routingRule;
+    private RoutingRuleEntity routingRule;
 
     // 🔹 Gateway
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

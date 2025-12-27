@@ -1,4 +1,4 @@
-package com.core.cashin.routing.entity;
+package com.core.cashin.commons.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -11,7 +11,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class GatewayMetadata {
+public class GatewayMetadataEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -24,7 +24,7 @@ public class GatewayMetadata {
     private Gateway gateway;
 
     @ToString.Include
-    @Column(name = "`key`")
+    @Column(name = "key")
     private String metaKey;
 
     @ToString.Include
