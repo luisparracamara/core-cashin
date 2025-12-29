@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class DepositResponse {
 
-    private String depositId;
+    private Long depositId;
     private String checkoutType;
     private String redirectUrl;
     private String redirectUrlSandbox;

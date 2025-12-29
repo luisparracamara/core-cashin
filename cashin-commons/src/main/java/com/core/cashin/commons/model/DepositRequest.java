@@ -1,12 +1,15 @@
 package com.core.cashin.commons.model;
 
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.util.Map;
 
 @Data
@@ -15,8 +18,9 @@ import java.util.Map;
 @Builder
 public class DepositRequest {
 
-    @NotBlank(message = "Amount value is needed for a deposit")
-    private String amount;
+    @NotNull(message = "Amount value is needed for a deposit")
+    @Digits(integer = 12, fraction = 2)
+    private BigDecimal amount;
 
     @NotBlank(message = "Country value is needed for a deposit")
     private String country;

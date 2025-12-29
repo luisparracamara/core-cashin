@@ -90,7 +90,7 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
             log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro mercadoPagoResponse {}",
                     utils.toJson(mercadoPagoResponse));
 
-            response = mercadoPagoCheckoutProMapper.buildDepositResponse(request, mercadoPagoResponse, paymentEntity.getTransactionId(),
+            response = mercadoPagoCheckoutProMapper.buildDepositResponse(request, mercadoPagoResponse, paymentEntity.getId(),
                     getCashInMethod().name());
 
         } catch (MPException | MPApiException e) {
@@ -110,7 +110,8 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
     public boolean checkStatus(String id) {
         PaymentClient client = new PaymentClient();
 
-        Map<String, String> gatewayMetadata = metadataRepository.findByGatewayConnectorName(getConnector().getName()).stream()
+        Map<String, String> gatewayMetadata = metadataRepository.findByGatewayConnectorName(getConnector().getName())
+                .stream()
                 .collect(Collectors.toMap(
                         GatewayMetadataEntity::getMetaKey,
                         GatewayMetadataEntity::getMetaValue

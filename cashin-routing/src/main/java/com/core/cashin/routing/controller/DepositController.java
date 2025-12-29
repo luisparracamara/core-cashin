@@ -1,5 +1,6 @@
 package com.core.cashin.routing.controller;
 
+import com.core.cashin.commons.model.CheckStatusResponse;
 import com.core.cashin.commons.model.DepositRequest;
 import com.core.cashin.commons.model.DepositResponse;
 import com.core.cashin.routing.service.RoutingService;
@@ -34,4 +35,13 @@ public class DepositController {
         log.debug("Response CONTROLLER {}", utils.toJson(depositResponse));
         return ResponseEntity.ok(depositResponse);
     }
+
+    @GetMapping("/v1/deposit/{depositId}")
+    public ResponseEntity<CheckStatusResponse> getDeposit(@PathVariable long depositId) {
+        log.debug("Request CONTROLLER {}", depositId);
+        CheckStatusResponse checkStatusDeposit = routingService.checkStatusDeposit(depositId);
+        log.debug("Response CONTROLLER {}", utils.toJson(checkStatusDeposit));
+        return ResponseEntity.ok(checkStatusDeposit);
+    }
+    
 }

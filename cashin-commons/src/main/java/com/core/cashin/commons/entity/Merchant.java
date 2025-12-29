@@ -45,7 +45,7 @@ public class Merchant {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "creation_date")
+    @Column(name = "created_at")
     private LocalDateTime creationDate;
 
 }

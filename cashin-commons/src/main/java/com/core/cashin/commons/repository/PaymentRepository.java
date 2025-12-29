@@ -2,6 +2,7 @@ package com.core.cashin.commons.repository;
 
 import com.core.cashin.commons.constants.PaymentStatusEnum;
 import com.core.cashin.commons.entity.PaymentEntity;
+import com.core.cashin.commons.model.MerchantFeePayment;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
@@ -35,5 +37,14 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
             """)
     int cancelPaymentStatus(@Param("status") PaymentStatusEnum status,
                        @Param("ids") List<Long> ids);
+
+    @Query("""
+    SELECT new com.core.cashin.commons.model.MerchantFeePayment(mf, p, py)
+    FROM PaymentEntity p
+    LEFT JOIN MerchantFeeEntity mf ON mf.paymentEntity = p
+    LEFT JOIN p.payerEntity py
+    WHERE p.id = :paymentId
+""")
+    Optional<MerchantFeePayment> findByPaymentId(@Param("paymentId") Long paymentId);
 
 }

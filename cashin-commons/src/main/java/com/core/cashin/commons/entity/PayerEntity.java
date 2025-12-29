@@ -1,5 +1,6 @@
 package com.core.cashin.commons.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,6 +18,7 @@ public class PayerEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "payer_id")
+    @JsonIgnore
     private Long id;
 
     private String document;

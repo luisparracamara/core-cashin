@@ -4,6 +4,7 @@ import com.core.cashin.commons.constants.PaymentStatusEnum;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
@@ -19,7 +20,7 @@ public class PaymentEntity {
     @Column(name = "payment_id")
     private Long id;
 
-    private String amount;
+    private BigDecimal amount;
     private String country;
     private String currency;
 
@@ -28,6 +29,9 @@ public class PaymentEntity {
 
     @Column(name = "payment_method_name")
     private String paymentMethodName;
+
+    @Column(name = "payment_type")
+    private String paymentType;
 
     private String description;
 

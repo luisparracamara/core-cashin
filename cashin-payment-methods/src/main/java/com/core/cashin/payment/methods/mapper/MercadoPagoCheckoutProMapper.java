@@ -15,7 +15,6 @@ import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.resources.preference.Preference;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -38,7 +37,7 @@ public class MercadoPagoCheckoutProMapper {
                         .description("Reference: " + idPayment)
                         .quantity(1)
                         .currencyId(request.getCurrency())
-                        .unitPrice(new BigDecimal(request.getAmount()))
+                        .unitPrice(request.getAmount())
                         .categoryId("services")
                         .build();
         List<PreferenceItemRequest> items = List.of(itemRequest);
@@ -87,7 +86,7 @@ public class MercadoPagoCheckoutProMapper {
     }
 
     public DepositResponse buildDepositResponse(DepositRequest request, MercadoPagoCheckoutProPreferenceResponse mercadoPagoResponse,
-                                                String idPayment, String cashInMethod) {
+                                                Long idPayment, String cashInMethod) {
 
         DepositMetadataResponse depositMetadataResponse = DepositMetadataResponse.builder()
                 .payerName(request.getPayer().getFirstName() + " " + request.getPayer().getLastName())

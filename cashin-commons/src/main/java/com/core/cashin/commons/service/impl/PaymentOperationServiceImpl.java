@@ -5,7 +5,6 @@ import com.core.cashin.commons.entity.PayerEntity;
 import com.core.cashin.commons.entity.PaymentCashinEntity;
 import com.core.cashin.commons.entity.PaymentEntity;
 import com.core.cashin.commons.repository.PayerRepository;
-
 import com.core.cashin.commons.repository.PaymentCashinRepository;
 import com.core.cashin.commons.repository.PaymentRepository;
 import com.core.cashin.commons.service.PaymentOperationService;
@@ -30,7 +29,7 @@ public class PaymentOperationServiceImpl implements PaymentOperationService {
     @Override
     @Transactional
     public void savePaymentCashin(PaymentEntity paymentEntity, PaymentCashinEntity paymentCashinEntity, PayerEntity payerEntity) {
-        payerRepository.save(payerEntity);
+        paymentEntity.setPayerEntity(savePayer(payerEntity));
         paymentRepository.save(paymentEntity);
         paymentCashinRepository.save(paymentCashinEntity);
     }
@@ -38,7 +37,7 @@ public class PaymentOperationServiceImpl implements PaymentOperationService {
     @Override
     @Transactional
     public void savePaymentCashin(PaymentEntity paymentEntity, PayerEntity payerEntity) {
-        payerRepository.save(payerEntity);
+        paymentEntity.setPayerEntity(savePayer(payerEntity));
         paymentRepository.save(paymentEntity);
     }
 
@@ -49,6 +48,12 @@ public class PaymentOperationServiceImpl implements PaymentOperationService {
         paymentEntity.setUpdatedAt(LocalDateTime.now());
         paymentCashinRepository.save(paymentCashinEntity);
         paymentRepository.save(paymentEntity);
+    }
+
+    private PayerEntity savePayer(PayerEntity payerEntity) {
+        return payerRepository
+                .findByDocument(payerEntity.getDocument())
+                .orElseGet(() -> payerRepository.save(payerEntity));
     }
 
 }
