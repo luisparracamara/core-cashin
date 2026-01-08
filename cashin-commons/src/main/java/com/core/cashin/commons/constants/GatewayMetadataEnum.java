@@ -7,5 +7,6 @@ public enum GatewayMetadataEnum {
     PUBLIC_KEY,
     PRIVATE_KEY,
     USER_ID,
-    SECRET
+    SECRET,
+    SECRET_KEY
 }

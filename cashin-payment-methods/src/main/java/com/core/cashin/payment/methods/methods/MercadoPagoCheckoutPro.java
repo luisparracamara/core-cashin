@@ -83,7 +83,7 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
 
             log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro preference getCollectorId {}", preference.getCollectorId());
             log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro preference getId {}", preference.getId());
-            log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro preference  getExternalReference{}", preference.getExternalReference());
+            log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro preference  getExternalReference {}", preference.getExternalReference());
 
             mercadoPagoResponse = mercadoPagoCheckoutProMapper
                     .buildMercadoPagoCheckoutProPreferenceResponse(preference);
@@ -145,5 +145,7 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
     //calccuar fee
     //webhook
     //sistema de wallet para fees de pagos, acumulables y que luego salden la deuda despues de confirmar el pago en webhook
+
+    //calcular fee del payment cuando estemos ruteando o en algun momento
 
 }

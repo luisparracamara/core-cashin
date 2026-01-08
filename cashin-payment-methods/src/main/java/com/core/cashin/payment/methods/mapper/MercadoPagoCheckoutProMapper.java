@@ -132,7 +132,7 @@ public class MercadoPagoCheckoutProMapper {
                                                         LocalDateTime now, String json) {
         return PaymentCashinEntity.builder()
                 .data(json)
-                .externalReference(String.valueOf(mercadoPagoResponse.id()))
+                .externalReference(String.valueOf(mercadoPagoResponse.externalReference()))
                 .createdAt(now)
                 .updatedAt(now)
                 .paymentEntity(paymentEntity)
