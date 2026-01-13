@@ -22,6 +22,7 @@ public class MerchantCostEntity {
     @Column(name = "merchant_cost_id")
     private Long id;
 
+    @Enumerated(EnumType.STRING)
     @Column(name = "fee_type")
     private MerchantCostEnum feeType;
 

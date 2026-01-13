@@ -1,10 +1,7 @@
 package com.core.cashin.commons.mapper;
 
 import com.core.cashin.commons.constants.PaymentStatusEnum;
-import com.core.cashin.commons.entity.Gateway;
-import com.core.cashin.commons.entity.Merchant;
-import com.core.cashin.commons.entity.PayerEntity;
-import com.core.cashin.commons.entity.PaymentEntity;
+import com.core.cashin.commons.entity.*;
 import com.core.cashin.commons.model.DepositRequest;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
@@ -25,8 +22,10 @@ public class CashinMapper {
                 .build();
     }
 
-    public PaymentEntity buildPaymentEntity(DepositRequest request, PayerEntity payerEntity, String idPayment,
-                                            LocalDateTime now, HttpServletRequest httpServletRequest) {
+    public PaymentEntity buildPaymentEntity(DepositRequest request, PayerEntity payerEntity, PaymentFeeEntity paymentFeeEntity,
+                                            String idPayment, HttpServletRequest httpServletRequest) {
+
+        LocalDateTime now = LocalDateTime.now();
 
         Merchant merchant = Merchant.builder()
                 .id(request.getMerchant().getMerchantId())
@@ -54,6 +53,7 @@ public class CashinMapper {
                 .gateway(gateway)
                 .merchant(merchant)
                 .payerEntity(payerEntity)
+                .paymentFeeEntity(paymentFeeEntity)
                 .build();
     }
 

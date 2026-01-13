@@ -10,12 +10,12 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "merchant_fee")
+@Table(name = "payment_fee")
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class MerchantFeeEntity {
+public class PaymentFeeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,22 +23,18 @@ public class MerchantFeeEntity {
     private Long id;
 
     @Column(name = "gross_amount")
-    private String grossAmount;
+    private BigDecimal grossAmount;
 
     @Column(name = "fee_amount")
     private BigDecimal feeAmount;
 
     @Column(name = "net_amount")
-    private String netAmount;
+    private BigDecimal netAmount;
 
     private String currency;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
-
-    @OneToOne
-    @JoinColumn(name = "fk_mf_payment_id")
-    private PaymentEntity paymentEntity;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fk_mf_merchant_id", nullable = false)

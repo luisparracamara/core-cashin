@@ -3,6 +3,7 @@ package com.core.cashin.routing.service.impl;
 import com.core.cashin.commons.constants.ConnectorEnum;
 import com.core.cashin.commons.entity.PayerEntity;
 import com.core.cashin.commons.entity.PaymentEntity;
+import com.core.cashin.commons.entity.PaymentFeeEntity;
 import com.core.cashin.commons.exception.NotFoundException;
 import com.core.cashin.commons.mapper.CashinMapper;
 import com.core.cashin.commons.model.CheckStatusResponse;
@@ -13,12 +14,12 @@ import com.core.cashin.commons.service.CheckStatusService;
 import com.core.cashin.commons.service.PaymentOperationService;
 import com.core.cashin.routing.mapper.RoutingMapper;
 import com.core.cashin.routing.repository.RoutingRepository;
+import com.core.cashin.routing.service.PaymentFeeService;
 import com.core.cashin.routing.service.RoutingService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -40,13 +41,18 @@ public class RoutingServiceImpl implements RoutingService {
 
     private final CheckStatusService checkStatusService;
 
-    public RoutingServiceImpl(RoutingMapper routingMapper, RoutingRepository routingRepository, PaymentRedirectorResolver resolver, PaymentOperationService paymentOperationService, CashinMapper cashinMapper, CheckStatusService checkStatusService) {
+    private final PaymentFeeService paymentFeeService;
+
+    public RoutingServiceImpl(RoutingMapper routingMapper, RoutingRepository routingRepository, PaymentRedirectorResolver resolver,
+                              PaymentOperationService paymentOperationService, CashinMapper cashinMapper,
+                              CheckStatusService checkStatusService, PaymentFeeService paymentFeeService) {
         this.routingMapper = routingMapper;
         this.routingRepository = routingRepository;
         this.resolver = resolver;
         this.paymentOperationService = paymentOperationService;
         this.cashinMapper = cashinMapper;
         this.checkStatusService = checkStatusService;
+        this.paymentFeeService = paymentFeeService;
     }
 
     @Override
@@ -93,8 +99,9 @@ public class RoutingServiceImpl implements RoutingService {
     //PaymentRedirector es capaz de usar la interfaz por polimorfismo
     private DepositResponse routeDeposit(ConnectorEnum connector, DepositRequest request, HttpServletRequest httpServletRequest) {
         PayerEntity payerEntity = cashinMapper.buildPayerEntity(request);
-        PaymentEntity paymentEntity = cashinMapper.buildPaymentEntity(request, payerEntity, UUID.randomUUID().toString(),
-                LocalDateTime.now(), httpServletRequest);
+        PaymentFeeEntity paymentFeeEntity = paymentFeeService.calculatePaymentFee(request);
+        PaymentEntity paymentEntity = cashinMapper.buildPaymentEntity(request, payerEntity, paymentFeeEntity,
+                UUID.randomUUID().toString(), httpServletRequest);
         paymentOperationService.savePaymentCashin(paymentEntity, payerEntity);
         return resolver
                 .resolve(connector) // devuelve a donde se redirige

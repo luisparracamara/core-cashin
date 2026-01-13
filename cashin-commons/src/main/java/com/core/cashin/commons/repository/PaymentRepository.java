@@ -35,13 +35,13 @@ public interface PaymentRepository extends JpaRepository<PaymentEntity, Long> {
                    p.updatedAt = NOW()
              WHERE p.id IN :ids
             """)
-    int cancelPaymentStatus(@Param("status") PaymentStatusEnum status,
+    void cancelPaymentStatus(@Param("status") PaymentStatusEnum status,
                        @Param("ids") List<Long> ids);
 
     @Query("""
-    SELECT new com.core.cashin.commons.model.MerchantFeePayment(mf, p, py)
+    SELECT new com.core.cashin.commons.model.MerchantFeePayment(pf, p, py)
     FROM PaymentEntity p
-    LEFT JOIN MerchantFeeEntity mf ON mf.paymentEntity = p
+    LEFT JOIN p.paymentFeeEntity pf
     LEFT JOIN p.payerEntity py
     WHERE p.id = :paymentId
 """)
