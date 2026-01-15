@@ -3,13 +3,12 @@ package com.core.cashin.payment.methods.methods;
 import com.core.cashin.commons.constants.CashInMethod;
 import com.core.cashin.commons.constants.ConnectorEnum;
 import com.core.cashin.commons.constants.GatewayMetadataEnum;
-import com.core.cashin.commons.entity.GatewayMetadataEntity;
 import com.core.cashin.commons.entity.PaymentCashinEntity;
 import com.core.cashin.commons.entity.PaymentEntity;
 import com.core.cashin.commons.exception.BadRequestException;
 import com.core.cashin.commons.model.DepositRequest;
 import com.core.cashin.commons.model.DepositResponse;
-import com.core.cashin.commons.repository.MetadataRepository;
+import com.core.cashin.commons.service.MetadataService;
 import com.core.cashin.commons.service.PaymentOperationService;
 import com.core.cashin.commons.service.PaymentRedirector;
 import com.core.cashin.commons.utils.Utils;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @Slf4j
@@ -42,13 +40,14 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
 
     private final PaymentOperationService paymentOperationService;
 
-    private final MetadataRepository metadataRepository;
+    private final MetadataService metadataService;
 
-    public MercadoPagoCheckoutPro(Utils utils, MercadoPagoCheckoutProMapper mercadoPagoCheckoutProMapper, PaymentOperationService paymentOperationService, MetadataRepository metadataRepository) {
+    public MercadoPagoCheckoutPro(Utils utils, MercadoPagoCheckoutProMapper mercadoPagoCheckoutProMapper, PaymentOperationService paymentOperationService,
+                                  MetadataService metadataService) {
         this.utils = utils;
         this.mercadoPagoCheckoutProMapper = mercadoPagoCheckoutProMapper;
         this.paymentOperationService = paymentOperationService;
-        this.metadataRepository = metadataRepository;
+        this.metadataService = metadataService;
     }
 
     @Override
@@ -109,14 +108,7 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
     @Override
     public boolean checkStatus(String id) {
         PaymentClient client = new PaymentClient();
-
-        Map<String, String> gatewayMetadata = metadataRepository.findByGatewayConnectorName(getConnector().getName())
-                .stream()
-                .collect(Collectors.toMap(
-                        GatewayMetadataEntity::getMetaKey,
-                        GatewayMetadataEntity::getMetaValue
-                ));
-
+        Map<String, String> gatewayMetadata = metadataService.retrieveGatewayMetadata(getConnector().getName());
         MPRequestOptions mpRequestOptions = mercadoPagoCheckoutProMapper.buildMPRequestOptions(
                 gatewayMetadata.get(GatewayMetadataEnum.ACCESS_TOKEN.name()));
 
@@ -130,7 +122,8 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
 
         try {
             MPResultsResourcesPage<Payment> status = client.search(searchRequest, mpRequestOptions);
-            log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro checkStatus result {} payments found", status.getResults().size());
+            log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro checkStatus result {} payments found",
+                    status.getResults().size());
             return !status.getResults().isEmpty();
         } catch (MPException | MPApiException e) {
             throw new BadRequestException("PROVIDER ERROR CHECK STATUS WITH ID: "+id+ " " + getConnector().name(), e);
