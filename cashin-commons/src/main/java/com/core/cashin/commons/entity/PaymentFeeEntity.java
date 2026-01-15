@@ -19,7 +19,7 @@ public class PaymentFeeEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "merchant_fee_id")
+    @Column(name = "payment_fee_id")
     private Long id;
 
     @Column(name = "gross_amount")
