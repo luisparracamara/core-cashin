@@ -26,7 +26,7 @@ public class DepositController {
         this.utils = utils;
     }
 
-    @PostMapping("/v1/deposit")
+    @PostMapping(value = "/v1/deposit", produces = "application/json")
     public ResponseEntity<DepositResponse> createDeposit(@RequestBody @Valid DepositRequest depositRequest,
                                                          HttpServletRequest httpServletRequest,
                                                          @RequestHeader Map<String, String> headers) {
@@ -36,7 +36,7 @@ public class DepositController {
         return ResponseEntity.ok(depositResponse);
     }
 
-    @GetMapping("/v1/deposit/{depositId}")
+    @GetMapping(value = "/v1/deposit/{depositId}", produces = "application/json")
     public ResponseEntity<CheckStatusResponse> getDeposit(@PathVariable long depositId) {
         log.debug("Request CONTROLLER {}", depositId);
         CheckStatusResponse checkStatusDeposit = routingService.checkStatusDeposit(depositId);

@@ -1,0 +1,44 @@
+package com.core.cashin.payment.methods.methods.mercadopagocheckoutpro;
+
+import com.core.cashin.commons.constants.ConnectorEnum;
+import com.core.cashin.commons.exception.BadRequestException;
+import com.core.cashin.commons.exception.InternalServerException;
+import com.mercadopago.client.preference.PreferenceClient;
+import com.mercadopago.client.preference.PreferenceRequest;
+import com.mercadopago.core.MPRequestOptions;
+import com.mercadopago.exceptions.MPApiException;
+import com.mercadopago.exceptions.MPException;
+import com.mercadopago.resources.preference.Preference;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
+
+@Component
+@Slf4j
+public class MercadoPagoCheckoutProComponent {
+
+    public ConnectorEnum getConnector() {
+        return ConnectorEnum.MERCADO_PAGO_CHECKOUT_PRO;
+    }
+
+    @CircuitBreaker(name = "mercadoPagoCB", fallbackMethod = "fallbackCallProvider")
+    public Preference callProvider(PreferenceRequest preferenceRequest, MPRequestOptions mpRequestOptions) {
+        try {
+            PreferenceClient client = new PreferenceClient();
+            return client.create(preferenceRequest, mpRequestOptions);
+        } catch (MPApiException e) {
+            if (e.getStatusCode() < 500) {
+                throw new BadRequestException("Invalid data sent to MercadoPago", e);
+            }
+            throw new InternalServerException("PROVIDER ERROR: " + getConnector().name(), e);
+        } catch (MPException e) {
+            throw new InternalServerException("PROVIDER ERROR: " + getConnector().name(), e);
+        }
+    }
+
+    public Preference fallbackCallProvider(PreferenceRequest preferenceRequest, MPRequestOptions mpRequestOptions, Throwable t) {
+        log.error("Circuit Breaker fallback in: {} {}", getConnector().name(), t.getMessage());
+        throw new InternalServerException("Payment system " + getConnector().name() + " is not currently available", t);
+    }
+
+}

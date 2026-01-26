@@ -32,3 +32,29 @@ jobs:
   pending-to-cancel:
     cron: "0 0/10 0 */3 * *"
     zone: America/Mexico_City
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      mercadoPagoCB:
+        # TIPO DE VENTANA
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20              # Mira las últimas 20 peticiones
+        # CUÁNDO EMPEZAR A EVALUAR
+        minimumNumberOfCalls: 10           # No decide nada hasta tener al menos 10 llamadas
+        # UMBRALES DE FALLO (ERROR EXPLICITO)
+        failureRateThreshold: 50           # Si 5 de esas 10 fallan (50%), abre el circuito
+        # UMBRALES DE LENTITUD (LATENCIA) - ¡MUY IMPORTANTE!
+        slowCallDurationThreshold: 3s      # Si tarda más de 3s, se considera "lenta"
+        slowCallRateThreshold: 50          # Si el 50% de las llamadas son lentas, abre el circuito
+        # RECUPERACIÓN
+        waitDurationInOpenState: 30s       # Si se abre, espera 30s antes de intentar de nuevo
+        permittedNumberOfCallsInHalfOpenState: 5 # Deja pasar 5 llamadas de prueba tras la espera
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - com.mercadopago.exceptions.MPException
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
+          - com.core.cashin.commons.exception.InternalServerException
+        ignoreExceptions:
+          - com.core.cashin.commons.exception.BadRequestException

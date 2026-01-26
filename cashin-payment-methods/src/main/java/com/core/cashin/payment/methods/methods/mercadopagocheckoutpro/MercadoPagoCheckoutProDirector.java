@@ -1,4 +1,4 @@
-package com.core.cashin.payment.methods.methods;
+package com.core.cashin.payment.methods.methods.mercadopagocheckoutpro;
 
 import com.core.cashin.commons.constants.CashInMethod;
 import com.core.cashin.commons.constants.ConnectorEnum;
@@ -15,7 +15,6 @@ import com.core.cashin.commons.utils.Utils;
 import com.core.cashin.payment.methods.mapper.MercadoPagoCheckoutProMapper;
 import com.core.cashin.payment.methods.model.MercadoPagoCheckoutProPreferenceResponse;
 import com.mercadopago.client.payment.PaymentClient;
-import com.mercadopago.client.preference.PreferenceClient;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.exceptions.MPApiException;
@@ -32,7 +31,7 @@ import java.util.Map;
 
 @Service
 @Slf4j
-public class MercadoPagoCheckoutPro implements PaymentRedirector {
+public class MercadoPagoCheckoutProDirector implements PaymentRedirector {
 
     private final Utils utils;
 
@@ -42,12 +41,16 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
 
     private final MetadataService metadataService;
 
-    public MercadoPagoCheckoutPro(Utils utils, MercadoPagoCheckoutProMapper mercadoPagoCheckoutProMapper, PaymentOperationService paymentOperationService,
-                                  MetadataService metadataService) {
+    private final MercadoPagoCheckoutProComponent mercadoPagoCheckoutProComponent;
+
+    public MercadoPagoCheckoutProDirector(Utils utils, MercadoPagoCheckoutProMapper mercadoPagoCheckoutProMapper,
+                                          PaymentOperationService paymentOperationService,
+                                          MetadataService metadataService, MercadoPagoCheckoutProComponent mercadoPagoCheckoutProComponent) {
         this.utils = utils;
         this.mercadoPagoCheckoutProMapper = mercadoPagoCheckoutProMapper;
         this.paymentOperationService = paymentOperationService;
         this.metadataService = metadataService;
+        this.mercadoPagoCheckoutProComponent = mercadoPagoCheckoutProComponent;
     }
 
     @Override
@@ -73,28 +76,16 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
                 request.getGatewayMetadata().get(GatewayMetadataEnum.PLATFORM_ID.name()));
         log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro mpRequestOptions {}", utils.toJson(mpRequestOptions));
 
-        PreferenceRequest preferenceRequest = mercadoPagoCheckoutProMapper.buildPreferenceRequest(request, paymentEntity.getTransactionId());
+        PreferenceRequest preferenceRequest = mercadoPagoCheckoutProMapper.buildPreferenceRequest(request, String.valueOf(paymentEntity.getId()));
         log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro preferenceRequest {}", utils.toJson(preferenceRequest));
 
-        PreferenceClient client = new PreferenceClient();
-        try {
-            Preference preference = client.create(preferenceRequest, mpRequestOptions);
+        Preference preference = mercadoPagoCheckoutProComponent.callProvider(preferenceRequest, mpRequestOptions);
+        mercadoPagoResponse = mercadoPagoCheckoutProMapper.buildMercadoPagoCheckoutProPreferenceResponse(preference);
+        log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro mercadoPagoResponse {}",
+                utils.toJson(mercadoPagoResponse));
 
-            log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro preference getCollectorId {}", preference.getCollectorId());
-            log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro preference getId {}", preference.getId());
-            log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro preference  getExternalReference {}", preference.getExternalReference());
-
-            mercadoPagoResponse = mercadoPagoCheckoutProMapper
-                    .buildMercadoPagoCheckoutProPreferenceResponse(preference);
-            log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro mercadoPagoResponse {}",
-                    utils.toJson(mercadoPagoResponse));
-
-            response = mercadoPagoCheckoutProMapper.buildDepositResponse(request, mercadoPagoResponse, paymentEntity.getId(),
-                    getCashInMethod().name());
-
-        } catch (MPException | MPApiException e) {
-            throw new BadRequestException("PROVIDER ERROR: " + getConnector().name(), e);
-        }
+        response = mercadoPagoCheckoutProMapper.buildDepositResponse(request, mercadoPagoResponse, paymentEntity.getId(),
+                getCashInMethod().name());
 
         PaymentCashinEntity paymentCashinEntity = mercadoPagoCheckoutProMapper.buildPaymentCashinEntity(
                 mercadoPagoResponse, paymentEntity, paymentEntity.getCreatedAt(), utils.toJson(mercadoPagoResponse));
@@ -126,7 +117,7 @@ public class MercadoPagoCheckoutPro implements PaymentRedirector {
                     status.getResults().size());
             return !status.getResults().isEmpty();
         } catch (MPException | MPApiException e) {
-            throw new BadRequestException("PROVIDER ERROR CHECK STATUS WITH ID: "+id+ " " + getConnector().name(), e);
+            throw new BadRequestException("PROVIDER ERROR CHECK STATUS WITH ID: " + id + " " + getConnector().name(), e);
         }
     }
 //TODO cambiar el nombre a entitities pero uno por uno y ver como afecta a consulta de ruteo
