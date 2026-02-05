@@ -31,5 +31,6 @@ public class PaymentMethod {
     private String description;
     private String status;
     private String name;
+    private String provider;
 
 }
