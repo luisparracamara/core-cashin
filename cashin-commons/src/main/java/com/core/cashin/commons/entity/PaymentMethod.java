@@ -25,7 +25,7 @@ public class PaymentMethod {
     private String logo;
 
     @Column(name = "payment_type")
-    private Long paymentType;
+    private String paymentType;
 
     private String country;
     private String description;
