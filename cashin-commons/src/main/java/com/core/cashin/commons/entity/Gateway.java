@@ -17,6 +17,7 @@ public class Gateway {
 
     @Id
     @Column(name = "gateway_id")
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @ToString.Include
     private Long id;
 
