@@ -26,11 +26,19 @@ spring:
         # Specifies the MySQL Dialect for Hibernate
         dialect: org.hibernate.dialect.MySQLDialect
 
+mercadopago:
+  client-id: ${MERCADOPAGO_CLIENT_ID:527581711555142}
+  client-secret: ${MERCADOPAGO_CLIENT_SECRET:LumUYUiIEg1e0LllhWQYQq4xN8lEtR7K}
+  redirect-uri: ${MERCADOPAGO_REDIRECT_URI:https://unculturable-tyree-nonveritably.ngrok-free.dev/api/v1/oauth/callback}
+
 jobs:
   created-to-cancelled:
     cron: "0 0 */8 * * *"
   pending-to-cancel:
     cron: "0 0/10 0 */3 * *"
+    zone: America/Mexico_City
+  refresh-token-oauth:
+    cron: "0 * * * * *"
     zone: America/Mexico_City
 
 resilience4j:

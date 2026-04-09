@@ -97,9 +97,9 @@ public class MercadoPagoCheckoutProDirector implements PaymentRedirector {
     }
 
     @Override
-    public boolean checkStatus(String id) {
+    public boolean checkStatus(String id, Long merchantId) {
         PaymentClient client = new PaymentClient();
-        Map<String, String> gatewayMetadata = metadataService.retrieveGatewayMetadata(getConnector().getName());
+        Map<String, String> gatewayMetadata = metadataService.retrieveGatewayMetadata(getConnector().getName(), merchantId);
         MPRequestOptions mpRequestOptions = mercadoPagoCheckoutProMapper.buildMPRequestOptions(
                 gatewayMetadata.get(GatewayMetadataEnum.ACCESS_TOKEN.name()));
 

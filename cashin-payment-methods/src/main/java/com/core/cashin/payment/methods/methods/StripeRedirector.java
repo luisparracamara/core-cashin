@@ -33,7 +33,7 @@ public class StripeRedirector implements PaymentRedirector {
     }
 
     @Override
-    public boolean checkStatus(String paymentId) {
+    public boolean checkStatus(String paymentId, Long merchantId) {
         return false;
     }
 }

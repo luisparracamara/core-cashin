@@ -4,6 +4,8 @@ import com.core.cashin.commons.exception.NotFoundException;
 import lombok.Getter;
 
 import java.util.Arrays;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 public enum ConnectorEnum {
@@ -16,6 +18,10 @@ public enum ConnectorEnum {
 
     private final String name;
 
+    public static final Set<ConnectorEnum> OAUTH_CAPABLE = Set.of(
+            MERCADO_PAGO_CHECKOUT_PRO
+    );
+
     ConnectorEnum(String name) {
         this.name = name;
     }
@@ -25,6 +31,12 @@ public enum ConnectorEnum {
                 .filter(c -> c.name.equalsIgnoreCase(name))
                 .findFirst()
                 .orElseThrow(() -> new NotFoundException("Unknown GatewayConnector: " + name));
+    }
+
+    public static Set<String> getOAuthCapableNames() {
+        return OAUTH_CAPABLE.stream()
+                .map(ConnectorEnum::getName)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
 }

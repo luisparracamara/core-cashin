@@ -49,7 +49,8 @@ public class PendingToCancelledCron {
         paymentCashinWithGateways.forEach(payment -> {
             boolean isDepositCompleted = routingService.checkExternalStatusDeposit(
                     ConnectorEnum.fromDisplayName(payment.getConnectorName()),
-                    payment.getPaymentCashin().getExternalReference());
+                    payment.getPaymentCashin().getExternalReference(),
+                    payment.getPaymentCashin().getPaymentEntity().getMerchant().getId());
 
             if (!isDepositCompleted) {
                 toCancel.add(payment.getPaymentCashin().getPaymentEntity().getId());

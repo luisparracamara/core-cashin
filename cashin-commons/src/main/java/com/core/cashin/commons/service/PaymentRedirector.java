@@ -14,6 +14,6 @@ public interface PaymentRedirector {
 
     DepositResponse create(DepositRequest request, PaymentEntity paymentEntity);
 
-    boolean checkStatus(String paymentId);
+    boolean checkStatus(String paymentId, Long merchantId);
 
 }
