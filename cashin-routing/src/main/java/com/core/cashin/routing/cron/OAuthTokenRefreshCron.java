@@ -7,6 +7,7 @@ import com.core.cashin.commons.repository.MetadataRepository;
 import com.core.cashin.commons.service.MetadataService;
 import com.core.cashin.routing.service.OAuthService;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +35,7 @@ public class OAuthTokenRefreshCron {
     }
 
     @Scheduled(cron = "${jobs.refresh-token-oauth.cron}", zone = "${jobs.refresh-token-oauth.zone}")
+    @SchedulerLock(name = "oauth-token-refresh", lockAtMostFor = "10m", lockAtLeastFor = "5m")
     public void refreshExpiringTokens() {
         log.info("[CRON-OAUTH-REFRESH] Starting token refresh check. OAuth-capable connectors: {}", OAUTH_CAPABLE_CONNECTORS);
 

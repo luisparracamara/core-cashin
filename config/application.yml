@@ -16,7 +16,12 @@ spring:
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver
 
-  # 2. JPA/Hibernate Configuration
+  # 2. Redis Configuration
+  data:
+    redis:
+      url: ${REDIS_URL:redis://localhost:6379}
+
+  # 3. JPA/Hibernate Configuration
   jpa:
     show-sql: true # Log SQL statements
     hibernate:
@@ -26,10 +31,15 @@ spring:
         # Specifies the MySQL Dialect for Hibernate
         dialect: org.hibernate.dialect.MySQLDialect
 
+oauth:
+  state:
+    ttl-minutes: 10
+
 mercadopago:
   client-id: ${MERCADOPAGO_CLIENT_ID:527581711555142}
   client-secret: ${MERCADOPAGO_CLIENT_SECRET:LumUYUiIEg1e0LllhWQYQq4xN8lEtR7K}
   redirect-uri: ${MERCADOPAGO_REDIRECT_URI:https://unculturable-tyree-nonveritably.ngrok-free.dev/api/v1/oauth/callback}
+  api-url: ${MERCADOPAGO_API_URL:https://api.mercadopago.com}
 
 jobs:
   created-to-cancelled:
@@ -38,7 +48,7 @@ jobs:
     cron: "0 0/10 0 */3 * *"
     zone: America/Mexico_City
   refresh-token-oauth:
-    cron: "0 * * * * *"
+    cron: "0 0 0 * * *"
     zone: America/Mexico_City
 
 resilience4j:

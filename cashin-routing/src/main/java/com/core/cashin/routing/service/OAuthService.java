@@ -4,7 +4,7 @@ import com.core.cashin.commons.model.OAuthTokenResponse;
 
 public interface OAuthService {
 
-    String getAuthUrl(String connector, Long merchantId, String state);
+    String getAuthUrl(String connector, Long merchantId);
 
     OAuthTokenResponse handleCallback(String code, String state);
 

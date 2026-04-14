@@ -2,10 +2,12 @@ package com.core.cashin.routing.service.impl;
 
 import com.core.cashin.commons.constants.ConnectorEnum;
 import com.core.cashin.commons.constants.GatewayMetadataEnum;
+import com.core.cashin.commons.exception.BadRequestException;
 import com.core.cashin.commons.model.OAuthRequest;
 import com.core.cashin.commons.model.OAuthTokenResponse;
 import com.core.cashin.commons.service.MetadataService;
 import com.core.cashin.commons.service.OAuthProvider;
+import com.core.cashin.routing.cache.OAuthStateStore;
 import com.core.cashin.routing.service.OAuthService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -20,18 +22,25 @@ public class OAuthServiceImpl implements OAuthService {
 
     private final OAuthProviderResolver resolver;
     private final MetadataService metadataService;
+    private final OAuthStateStore stateStore;
 
-    public OAuthServiceImpl(OAuthProviderResolver resolver, MetadataService metadataService) {
+    public OAuthServiceImpl(OAuthProviderResolver resolver, MetadataService metadataService, OAuthStateStore stateStore) {
         this.resolver = resolver;
         this.metadataService = metadataService;
+        this.stateStore = stateStore;
     }
 
     @Override
-    public String getAuthUrl(String connector, Long merchantId, String state) {
+    public String getAuthUrl(String connector, Long merchantId) {
         ConnectorEnum connectorEnum = ConnectorEnum.fromDisplayName(connector);
+
+        if (!ConnectorEnum.OAUTH_CAPABLE.contains(connectorEnum)) {
+            throw new BadRequestException("Connector does not support OAuth: " + connector);
+        }
+
         OAuthProvider provider = resolver.resolve(connectorEnum);
 
-        String encodedState = merchantId + ":" + connector + ":" + (state != null ? state : UUID.randomUUID().toString());
+        String encodedState = merchantId + ":" + connector + ":" + UUID.randomUUID();
 
         OAuthRequest request = OAuthRequest.builder()
                 .state(encodedState)
@@ -40,12 +49,16 @@ public class OAuthServiceImpl implements OAuthService {
                 .build();
 
         String authUrl = provider.buildAuthUrl(request);
+        stateStore.save(encodedState);
         log.debug("[OAuthService] Auth URL generated for connector {} merchantId {}: {}", connector, merchantId, authUrl);
         return authUrl;
     }
 
     @Override
     public OAuthTokenResponse handleCallback(String code, String state) {
+        if (!stateStore.consumeIfValid(state)) {
+            throw new BadRequestException("Invalid or expired OAuth state");
+        }
         Long merchantId = extractMerchantId(state);
         String connector = extractConnector(state);
         ConnectorEnum connectorEnum = ConnectorEnum.fromDisplayName(connector);
@@ -78,10 +91,19 @@ public class OAuthServiceImpl implements OAuthService {
     @Override
     public OAuthTokenResponse refresh(String connector, Long merchantId) {
         ConnectorEnum connectorEnum = ConnectorEnum.fromDisplayName(connector);
+
+        if (!ConnectorEnum.OAUTH_CAPABLE.contains(connectorEnum)) {
+            throw new BadRequestException("Connector does not support OAuth: " + connector);
+        }
+
         OAuthProvider provider = resolver.resolve(connectorEnum);
 
         Map<String, String> metadata = metadataService.retrieveGatewayMetadata(connectorEnum.getName(), merchantId);
         String refreshToken = metadata.get(GatewayMetadataEnum.REFRESH_TOKEN.name());
+
+        if (refreshToken == null) {
+            throw new BadRequestException("No refresh token found for connector: " + connector);
+        }
 
         OAuthTokenResponse tokenResponse = provider.refreshToken(refreshToken, merchantId);
         log.debug("[OAuthService] Tokens refreshed for connector {} merchantId {}", connector, merchantId);
@@ -95,7 +117,17 @@ public class OAuthServiceImpl implements OAuthService {
     public boolean isConnected(String connector, Long merchantId) {
         ConnectorEnum connectorEnum = ConnectorEnum.fromDisplayName(connector);
         Map<String, String> metadata = metadataService.retrieveGatewayMetadata(connectorEnum.getName(), merchantId);
-        return metadata.containsKey(GatewayMetadataEnum.ACCESS_TOKEN.name());
+
+        if (!metadata.containsKey(GatewayMetadataEnum.ACCESS_TOKEN.name())) {
+            return false;
+        }
+
+        String expiresAt = metadata.get(GatewayMetadataEnum.TOKEN_EXPIRES_AT.name());
+        if (expiresAt != null) {
+            return Instant.parse(expiresAt).isAfter(Instant.now());
+        }
+
+        return true;
     }
 
     @Override

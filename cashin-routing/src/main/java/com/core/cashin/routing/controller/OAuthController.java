@@ -22,10 +22,9 @@ public class OAuthController {
     @GetMapping("/auth-url")
     public ResponseEntity<Map<String, String>> getAuthUrl(
             @RequestHeader("X-Merchant-Id") Long merchantId,
-            @RequestParam String connector,
-            @RequestParam String state) {
-        log.debug("[OAuthController] getAuthUrl connector={} merchantId={} state={}", connector, merchantId, state);
-        String authUrl = oAuthService.getAuthUrl(connector, merchantId, state);
+            @RequestParam String connector) {
+        log.debug("[OAuthController] getAuthUrl connector={} merchantId={}", connector, merchantId);
+        String authUrl = oAuthService.getAuthUrl(connector, merchantId);
         return ResponseEntity.ok(Map.of("authUrl", authUrl));
     }
 
