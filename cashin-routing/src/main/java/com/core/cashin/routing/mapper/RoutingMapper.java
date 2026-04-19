@@ -1,5 +1,6 @@
 package com.core.cashin.routing.mapper;
 
+import com.core.cashin.commons.constants.HttpHeaders;
 import com.core.cashin.commons.model.DepositRequest;
 import com.core.cashin.commons.model.MerchantRequest;
 import com.core.cashin.commons.model.RoutingResultProjection;
@@ -20,7 +21,7 @@ public class RoutingMapper {
         request.setMerchant(merchantRequest);
         request.setConnectorName(routingResultDTO.getConnectorName());
         request.setGatewayMetadata(metadata);
-        request.setDate(headers.get("x-date"));
+        request.setDate(headers.get(HttpHeaders.X_DATE));
         request.setPaymentMethodName(routingResultDTO.getPaymentMethodName());
         request.setGatewayId(routingResultDTO.getGatewayId());
 

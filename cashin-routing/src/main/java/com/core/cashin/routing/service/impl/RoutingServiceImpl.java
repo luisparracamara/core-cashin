@@ -1,6 +1,7 @@
 package com.core.cashin.routing.service.impl;
 
 import com.core.cashin.commons.constants.ConnectorEnum;
+import com.core.cashin.commons.constants.HttpHeaders;
 import com.core.cashin.commons.entity.PayerEntity;
 import com.core.cashin.commons.entity.PaymentEntity;
 import com.core.cashin.commons.entity.PaymentFeeEntity;
@@ -64,8 +65,8 @@ public class RoutingServiceImpl implements RoutingService {
     }
 
     @Override
-    public boolean checkExternalStatusDeposit(ConnectorEnum connector, String id) {
-        return routeCheckStatus(connector, id);
+    public boolean checkExternalStatusDeposit(ConnectorEnum connector, String id, Long merchantId) {
+        return routeCheckStatus(connector, id, merchantId);
     }
 
     @Override
@@ -75,9 +76,11 @@ public class RoutingServiceImpl implements RoutingService {
 
     private DepositRequest retrieveCashinRoutingRule(DepositRequest request, Map<String, String> headers) {
         List<RoutingResultProjection> routingResultDTO = routingRepository.resolveRouting(request.getCountry(),
-                request.getPaymentMethod(), headers.get("login-id"), headers.get("secret-key"), request.getCurrency());
+                request.getPaymentMethod(), headers.get(HttpHeaders.LOGIN_ID), headers.get(HttpHeaders.SECRET_KEY), request.getCurrency());
 
         if (routingResultDTO.isEmpty()) {
+            log.warn("[RoutingServiceImpl] No routing rule found for country={}, paymentMethod={}, currency={}, loginId={}",
+                    request.getCountry(), request.getPaymentMethod(), request.getCurrency(), headers.get(HttpHeaders.LOGIN_ID));
             throw new NotFoundException("Cashing routing rule was not found");
         }
 
@@ -108,10 +111,10 @@ public class RoutingServiceImpl implements RoutingService {
                 .create(request, paymentEntity); // redirige
     }
 
-    private boolean routeCheckStatus(ConnectorEnum connector, String id) {
+    private boolean routeCheckStatus(ConnectorEnum connector, String id, Long merchantId) {
         return resolver
                 .resolve(connector)
-                .checkStatus(id);
+                .checkStatus(id, merchantId);
     }
 
 }

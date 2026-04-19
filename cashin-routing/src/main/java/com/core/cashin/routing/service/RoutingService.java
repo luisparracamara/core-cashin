@@ -12,7 +12,7 @@ public interface RoutingService {
 
     DepositResponse createDeposit(DepositRequest depositRequest, HttpServletRequest httpServletRequest, Map<String, String> headers);
 
-    boolean checkExternalStatusDeposit(ConnectorEnum connector, String id);
+    boolean checkExternalStatusDeposit(ConnectorEnum connector, String id, Long merchantId);
 
     CheckStatusResponse checkStatusDeposit(long id);
 

@@ -17,7 +17,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @EnableJpaRepositories(basePackages = "com.core.cashin")
 @EntityScan(basePackages = "com.core.cashin.commons.entity")
 @EnableScheduling
-@EnableFeignClients
+@EnableFeignClients(basePackages = "com.core.cashin")
 public class App {
     public static void main(String[] args) {
         System.setProperty("spring.config.location", "config/");

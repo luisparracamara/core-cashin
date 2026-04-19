@@ -47,21 +47,25 @@ public class PendingToCancelledCron {
 
         List<Long> toCancel = new ArrayList<>();
         paymentCashinWithGateways.forEach(payment -> {
-            boolean isDepositCompleted = routingService.checkExternalStatusDeposit(
-                    ConnectorEnum.fromDisplayName(payment.getConnectorName()),
-                    payment.getPaymentCashin().getExternalReference());
+            try {
+                boolean isDepositCompleted = routingService.checkExternalStatusDeposit(
+                        ConnectorEnum.fromDisplayName(payment.getConnectorName()),
+                        payment.getPaymentCashin().getExternalReference(),
+                        payment.getPaymentCashin().getPaymentEntity().getMerchant().getId());
 
-            if (!isDepositCompleted) {
-                toCancel.add(payment.getPaymentCashin().getPaymentEntity().getId());
+                if (!isDepositCompleted) {
+                    toCancel.add(payment.getPaymentCashin().getPaymentEntity().getId());
+                }
+            } catch (Exception e) {
+                log.error("[CRON-PAYMENT-PENDING-TO-CANCELLED] Error checking payment id={}: {}",
+                        payment.getPaymentCashin().getPaymentEntity().getId(), e.getMessage(), e);
             }
         });
 
         if (!toCancel.isEmpty()) {
             paymentRepository.cancelPaymentStatus(PaymentStatusEnum.CANCELLED, toCancel);
-
             log.debug("[CRON-PAYMENT-PENDING-TO-CANCELLED] records with id {} were updated from status {} to status {}",
-                    toCancel,
-                    PaymentStatusEnum.PENDING.name(), PaymentStatusEnum.CANCELLED.name());
+                    toCancel, PaymentStatusEnum.PENDING.name(), PaymentStatusEnum.CANCELLED.name());
         }
 
     }
