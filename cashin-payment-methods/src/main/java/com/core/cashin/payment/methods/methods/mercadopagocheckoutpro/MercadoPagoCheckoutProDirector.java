@@ -104,7 +104,7 @@ public class MercadoPagoCheckoutProDirector implements PaymentRedirector {
                 gatewayMetadata.get(GatewayMetadataEnum.ACCESS_TOKEN.name()));
 
         Map<String, Object> filters = new HashMap<>();
-        filters.put("external_reference", id);
+        filters.put(MercadoPagoConstants.EXTERNAL_REFERENCE_KEY, id);
         MPSearchRequest searchRequest = MPSearchRequest.builder()
                 .offset(0)
                 .limit(10)

@@ -3,6 +3,7 @@ package com.core.cashin.routing.service.impl;
 import com.core.cashin.commons.entity.Merchant;
 import com.core.cashin.commons.entity.MerchantCostEntity;
 import com.core.cashin.commons.entity.PaymentFeeEntity;
+import com.core.cashin.commons.exception.InternalServerException;
 import com.core.cashin.commons.exception.NotFoundException;
 import com.core.cashin.commons.model.DepositRequest;
 import com.core.cashin.commons.repository.MerchantCostRepository;
@@ -36,7 +37,7 @@ public class PaymentFeeServiceImpl implements PaymentFeeService {
         BigDecimal amount = request.getAmount();
         MerchantCostEntity merchantCostEntity = merchantCostRepository.findByMerchantId(request.getMerchant().getMerchantId()).
                 orElseThrow(() -> new NotFoundException("Merchant fee configuration not found"));
-        PaymentFeeEntity paymentFeeEntity = null;
+        PaymentFeeEntity paymentFeeEntity;
         Merchant merchant = entityManager.getReference(Merchant.class, request.getMerchant().getMerchantId());
 
         switch (merchantCostEntity.getFeeType()) {
@@ -56,6 +57,7 @@ public class PaymentFeeServiceImpl implements PaymentFeeService {
                 mixed = mixed.add(merchantCostEntity.getFixRate());
                 paymentFeeEntity = buildPaymentFeeEntity(mixed.add(amount), mixed, request, merchant);
             }
+            default -> throw new InternalServerException("Unsupported fee type: " + merchantCostEntity.getFeeType());
         }
 
         log.info("Fee calculated successfully");

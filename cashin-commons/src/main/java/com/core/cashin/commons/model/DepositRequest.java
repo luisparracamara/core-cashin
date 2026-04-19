@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -42,7 +43,12 @@ public class DepositRequest {
     private String errorUrl;
     private String ip;
     private String notificationUrl;
+
+    @NotNull(message = "Date is required")
+    @Pattern(regexp = "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$",
+             message = "Date must follow format: yyyy-MM-ddTHH:mm:ssZ (example: 2025-12-20T15:57:25Z)")
     private String date;
+
     private Long gatewayId;
 
     private MerchantRequest merchant;

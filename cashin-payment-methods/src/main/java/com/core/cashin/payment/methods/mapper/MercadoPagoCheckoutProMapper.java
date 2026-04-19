@@ -7,6 +7,7 @@ import com.core.cashin.commons.model.DepositRequest;
 import com.core.cashin.commons.model.DepositResponse;
 import com.core.cashin.commons.model.PaymentInfoResponse;
 import com.core.cashin.payment.methods.model.MercadoPagoCheckoutProPreferenceResponse;
+import com.core.cashin.payment.methods.methods.mercadopagocheckoutpro.MercadoPagoConstants;
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferencePayerRequest;
@@ -34,11 +35,11 @@ public class MercadoPagoCheckoutProMapper {
                 PreferenceItemRequest.builder()
                         .id(idPayment)
                         .title(request.getMerchant().getMerchantName())
-                        .description("Reference: " + idPayment)
+                        .description(MercadoPagoConstants.DESCRIPTION_PREFIX + idPayment)
                         .quantity(1)
                         .currencyId(request.getCurrency())
                         .unitPrice(request.getAmount())
-                        .categoryId("services")
+                        .categoryId(MercadoPagoConstants.CATEGORY_ID)
                         .build();
         List<PreferenceItemRequest> items = List.of(itemRequest);
 
@@ -59,7 +60,7 @@ public class MercadoPagoCheckoutProMapper {
                 .externalReference(idPayment)
                 .notificationUrl(request.getNotificationUrl())
                 .backUrls(backUrlsRequest)
-                .autoReturn("approved")
+                .autoReturn(MercadoPagoConstants.AUTO_RETURN)
                 .expires(true)
                 .expirationDateTo(userDateTime.plus(Duration.ofHours(24)).atOffset(ZoneOffset.UTC))
                 .statementDescriptor(request.getMerchant().getMerchantName())
@@ -70,7 +71,7 @@ public class MercadoPagoCheckoutProMapper {
 
     public MPRequestOptions buildMPRequestOptions(String accessToken, String platformId) {
         Map<String, String> headers = new HashMap<>();
-        headers.put("X-Platform-Id", platformId);
+        headers.put(MercadoPagoConstants.HEADER_PLATFORM_ID, platformId);
         return MPRequestOptions.builder()
                 .accessToken(accessToken)
                 .customHeaders(headers)
@@ -105,7 +106,7 @@ public class MercadoPagoCheckoutProMapper {
 
         return DepositResponse.builder()
                 .depositId(idPayment)
-                .checkoutType("ONE_SHOT")
+                .checkoutType(MercadoPagoConstants.CHECKOUT_TYPE)
                 .redirectUrl(mercadoPagoResponse.redirectUrl())
                 .redirectUrlSandbox(mercadoPagoResponse.sandboxInitPoint())
                 .paymentInfo(paymentInfoResponse)

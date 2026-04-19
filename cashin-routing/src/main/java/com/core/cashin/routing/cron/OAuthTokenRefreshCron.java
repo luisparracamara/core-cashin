@@ -42,10 +42,7 @@ public class OAuthTokenRefreshCron {
         int refreshed = 0;
         int errors = 0;
 
-        for (Gateway gateway : metadataRepository.findAllGateways()) {
-            if (!OAUTH_CAPABLE_CONNECTORS.contains(gateway.getConnectorName())) {
-                continue;
-            }
+        for (Gateway gateway : metadataRepository.findOAuthCapableGateways(OAUTH_CAPABLE_CONNECTORS)) {
             try {
                 ConnectorEnum connector = ConnectorEnum.fromDisplayName(gateway.getConnectorName());
                 boolean wasRefreshed = refreshIfNeeded(connector, gateway.getMerchantId());

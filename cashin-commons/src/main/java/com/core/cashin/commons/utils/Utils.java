@@ -15,16 +15,16 @@ public class Utils {
 
     public Utils() {
         this.mapper = new ObjectMapper();
+        this.mapper.registerModule(new JavaTimeModule());
+        this.mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
     }
 
     public String toJson(Object obj) {
         try {
-            mapper.registerModule(new JavaTimeModule());
-            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
             return mapper.writeValueAsString(obj);
         } catch (Exception e) {
             log.error("Failed to serialize object to JSON {}", e.getMessage());
-            throw new InternalServerException("Failed to serialize object to JSON: "+ e);
+            throw new InternalServerException("Failed to serialize object to JSON: " + e);
         }
     }
 }

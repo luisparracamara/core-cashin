@@ -1,15 +1,19 @@
 package com.core.cashin.routing.controller;
 
+import com.core.cashin.commons.constants.HttpHeaders;
 import com.core.cashin.commons.model.OAuthTokenResponse;
 import com.core.cashin.routing.service.OAuthService;
+import com.core.cashin.routing.validation.ValidHeaders;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api/v1/oauth")
+@Validated
 @Slf4j
 public class OAuthController {
 
@@ -21,8 +25,9 @@ public class OAuthController {
 
     @GetMapping("/auth-url")
     public ResponseEntity<Map<String, String>> getAuthUrl(
-            @RequestHeader("X-Merchant-Id") Long merchantId,
-            @RequestParam String connector) {
+            @RequestHeader(HttpHeaders.X_MERCHANT_ID) Long merchantId,
+            @RequestParam String connector,
+            @ValidHeaders @RequestHeader Map<String, String> headers) {
         log.debug("[OAuthController] getAuthUrl connector={} merchantId={}", connector, merchantId);
         String authUrl = oAuthService.getAuthUrl(connector, merchantId);
         return ResponseEntity.ok(Map.of("authUrl", authUrl));
@@ -40,7 +45,8 @@ public class OAuthController {
     @GetMapping("/{connector}/status")
     public ResponseEntity<Map<String, Object>> status(
             @PathVariable String connector,
-            @RequestHeader("X-Merchant-Id") Long merchantId) {
+            @RequestHeader(HttpHeaders.X_MERCHANT_ID) Long merchantId,
+            @ValidHeaders @RequestHeader Map<String, String> headers) {
         log.debug("[OAuthController] status connector={} merchantId={}", connector, merchantId);
         boolean connected = oAuthService.isConnected(connector, merchantId);
         return ResponseEntity.ok(Map.of("connected", connected, "connector", connector));
@@ -49,7 +55,8 @@ public class OAuthController {
     @DeleteMapping("/{connector}/disconnect")
     public ResponseEntity<Map<String, Object>> disconnect(
             @PathVariable String connector,
-            @RequestHeader("X-Merchant-Id") Long merchantId) {
+            @RequestHeader(HttpHeaders.X_MERCHANT_ID) Long merchantId,
+            @ValidHeaders @RequestHeader Map<String, String> headers) {
         log.debug("[OAuthController] disconnect connector={} merchantId={}", connector, merchantId);
         oAuthService.disconnect(connector, merchantId);
         return ResponseEntity.ok(Map.of("disconnected", true, "connector", connector));
@@ -58,7 +65,8 @@ public class OAuthController {
     @PostMapping("/{connector}/refresh")
     public ResponseEntity<OAuthTokenResponse> refresh(
             @PathVariable String connector,
-            @RequestHeader("X-Merchant-Id") Long merchantId) {
+            @RequestHeader(HttpHeaders.X_MERCHANT_ID) Long merchantId,
+            @ValidHeaders @RequestHeader Map<String, String> headers) {
         log.debug("[OAuthController] refresh connector={} merchantId={}", connector, merchantId);
         OAuthTokenResponse response = oAuthService.refresh(connector, merchantId);
         return ResponseEntity.ok(response);

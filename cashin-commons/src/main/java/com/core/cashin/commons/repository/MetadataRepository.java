@@ -9,6 +9,7 @@ import com.core.cashin.commons.entity.Gateway;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 public interface MetadataRepository extends JpaRepository<GatewayMetadataEntity, Long> {
 
@@ -30,7 +31,7 @@ public interface MetadataRepository extends JpaRepository<GatewayMetadataEntity,
     Optional<Gateway> findGatewayByConnectorName(@Param("connectorName") String connectorName,
                                                  @Param("merchantId") Long merchantId);
 
-    @Query("SELECT g FROM Gateway g")
-    List<Gateway> findAllGateways();
+    @Query("SELECT g FROM Gateway g WHERE g.connectorName IN :connectorNames")
+    List<Gateway> findOAuthCapableGateways(@Param("connectorNames") Set<String> connectorNames);
 
 }

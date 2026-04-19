@@ -4,17 +4,20 @@ import com.core.cashin.commons.model.CheckStatusResponse;
 import com.core.cashin.commons.model.DepositRequest;
 import com.core.cashin.commons.model.DepositResponse;
 import com.core.cashin.routing.service.RoutingService;
+import com.core.cashin.routing.validation.ValidHeaders;
 import com.core.cashin.commons.utils.Utils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
+@Validated
 @Slf4j
 public class DepositController {
 
@@ -29,7 +32,7 @@ public class DepositController {
     @PostMapping(value = "/v1/deposit", produces = "application/json")
     public ResponseEntity<DepositResponse> createDeposit(@RequestBody @Valid DepositRequest depositRequest,
                                                          HttpServletRequest httpServletRequest,
-                                                         @RequestHeader Map<String, String> headers) {
+                                                         @ValidHeaders @RequestHeader Map<String, String> headers) {
         log.debug("Request CONTROLLER {}", utils.toJson(depositRequest));
         DepositResponse depositResponse = routingService.createDeposit(depositRequest, httpServletRequest,  headers);
         log.debug("Response CONTROLLER {}", utils.toJson(depositResponse));
@@ -37,7 +40,8 @@ public class DepositController {
     }
 
     @GetMapping(value = "/v1/deposit/{depositId}", produces = "application/json")
-    public ResponseEntity<CheckStatusResponse> getDeposit(@PathVariable long depositId) {
+    public ResponseEntity<CheckStatusResponse> getDeposit(@PathVariable long depositId,
+                                                           @ValidHeaders @RequestHeader Map<String, String> headers) {
         log.debug("Request CONTROLLER {}", depositId);
         CheckStatusResponse checkStatusDeposit = routingService.checkStatusDeposit(depositId);
         log.debug("Response CONTROLLER {}", utils.toJson(checkStatusDeposit));

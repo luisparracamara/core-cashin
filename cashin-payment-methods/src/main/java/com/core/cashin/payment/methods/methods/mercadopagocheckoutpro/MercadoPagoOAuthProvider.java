@@ -19,7 +19,6 @@ import java.util.Map;
 @Slf4j
 public class MercadoPagoOAuthProvider implements OAuthProvider {
 
-    private static final String AUTH_URL = "https://auth.mercadopago.com/authorization";
 
     @Value("${mercadopago.client-id}")
     private String clientId;
@@ -43,10 +42,10 @@ public class MercadoPagoOAuthProvider implements OAuthProvider {
 
     @Override
     public String buildAuthUrl(OAuthRequest request) {
-        return AUTH_URL
+        return MercadoPagoConstants.AUTH_URL
                 + "?client_id=" + clientId
                 + "&response_type=code"
-                + "&platform_id=mp"
+                + "&platform_id=" + MercadoPagoConstants.PLATFORM_ID
                 + "&state=" + URLEncoder.encode(request.getState(), StandardCharsets.UTF_8)
                 + "&redirect_uri=" + URLEncoder.encode(redirectUri, StandardCharsets.UTF_8);
     }
@@ -54,11 +53,11 @@ public class MercadoPagoOAuthProvider implements OAuthProvider {
     @Override
     public OAuthTokenResponse exchangeCode(String code, String state, Long merchantId) {
         Map<String, String> body = Map.of(
-                "grant_type", "authorization_code",
-                "client_id", clientId,
-                "client_secret", clientSecret,
-                "code", code,
-                "redirect_uri", redirectUri
+                MercadoPagoConstants.GRANT_TYPE, MercadoPagoConstants.GRANT_TYPE_AUTH_CODE,
+                MercadoPagoConstants.PARAM_CLIENT_ID, clientId,
+                MercadoPagoConstants.PARAM_CLIENT_SECRET, clientSecret,
+                MercadoPagoConstants.PARAM_CODE, code,
+                MercadoPagoConstants.PARAM_REDIRECT_URI, redirectUri
         );
 
         return callTokenEndpoint(body);
@@ -67,10 +66,10 @@ public class MercadoPagoOAuthProvider implements OAuthProvider {
     @Override
     public OAuthTokenResponse refreshToken(String refreshToken, Long merchantId) {
         Map<String, String> body = Map.of(
-                "grant_type", "refresh_token",
-                "client_id", clientId,
-                "client_secret", clientSecret,
-                "refresh_token", refreshToken
+                MercadoPagoConstants.GRANT_TYPE, MercadoPagoConstants.GRANT_TYPE_REFRESH,
+                MercadoPagoConstants.PARAM_CLIENT_ID, clientId,
+                MercadoPagoConstants.PARAM_CLIENT_SECRET, clientSecret,
+                MercadoPagoConstants.PARAM_REFRESH_TOKEN, refreshToken
         );
 
         return callTokenEndpoint(body);
