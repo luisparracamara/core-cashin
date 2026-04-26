@@ -14,12 +14,14 @@ public enum ConnectorEnum {
     STRIPE("Stripe"),
     MERCADOPAGO("Mercado Pago"),
     CONNECTOR("connector"),
-    MERCADO_PAGO_CHECKOUT_PRO("MercadoPagoCheckoutPro");
+    MERCADO_PAGO_CHECKOUT_PRO("MercadoPagoCheckoutPro"),
+    MERCADO_PAGO_CHECKOUT_API("MercadoPagoCheckoutApi");
 
     private final String name;
 
     public static final Set<ConnectorEnum> OAUTH_CAPABLE = Set.of(
-            MERCADO_PAGO_CHECKOUT_PRO
+            MERCADO_PAGO_CHECKOUT_PRO,
+            MERCADO_PAGO_CHECKOUT_API
     );
 
     ConnectorEnum(String name) {

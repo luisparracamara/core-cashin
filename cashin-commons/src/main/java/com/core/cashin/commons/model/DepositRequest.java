@@ -54,5 +54,6 @@ public class DepositRequest {
     private MerchantRequest merchant;
     private String connectorName;
     private Map<String, String> gatewayMetadata;
+    private Map<String, String> paymentData;
 
 }

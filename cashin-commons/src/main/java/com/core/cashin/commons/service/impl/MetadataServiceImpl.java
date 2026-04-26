@@ -8,8 +8,8 @@ import com.core.cashin.commons.service.MetadataService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -34,30 +34,32 @@ public class MetadataServiceImpl implements MetadataService {
     @Override
     @Transactional
     public void saveOrUpdateMetadata(String connector, Long merchantId, String key, String value) {
-        Optional<GatewayMetadataEntity> existing = metadataRepository
+        List<GatewayMetadataEntity> existing = metadataRepository
                 .findByGatewayConnectorNameAndMetaKey(connector, merchantId, key);
 
-        if (existing.isPresent()) {
-            existing.get().setMetaValue(value);
-            metadataRepository.save(existing.get());
-        } else {
-            Gateway gateway = metadataRepository.findGatewayByConnectorName(connector, merchantId)
-                    .orElseThrow(() -> new NotFoundException("Gateway not found for connector: " + connector + " merchantId: " + merchantId));
-
-            GatewayMetadataEntity metadata = GatewayMetadataEntity.builder()
-                    .gateway(gateway)
-                    .metaKey(key)
-                    .metaValue(value)
-                    .build();
-            metadataRepository.save(metadata);
+        if (!existing.isEmpty()) {
+            metadataRepository.deleteAll(existing);
+            metadataRepository.flush();
         }
+
+        Gateway gateway = metadataRepository.findGatewayByConnectorName(connector, merchantId)
+                .orElseThrow(() -> new NotFoundException("Gateway not found for connector: " + connector + " merchantId: " + merchantId));
+
+        metadataRepository.save(GatewayMetadataEntity.builder()
+                .gateway(gateway)
+                .metaKey(key)
+                .metaValue(value)
+                .build());
     }
 
     @Override
     @Transactional
     public void deleteMetadata(String connector, Long merchantId, String key) {
-        metadataRepository.findByGatewayConnectorNameAndMetaKey(connector, merchantId, key)
-                .ifPresent(metadataRepository::delete);
+        List<GatewayMetadataEntity> existing = metadataRepository
+                .findByGatewayConnectorNameAndMetaKey(connector, merchantId, key);
+        if (!existing.isEmpty()) {
+            metadataRepository.deleteAll(existing);
+        }
     }
 
 }

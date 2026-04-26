@@ -5,6 +5,9 @@ public enum CashInMethod {
     VOUCHER,
     BOLETO,
     BANK_TRANSFER,
-    BANK_DEPOSIT
+    BANK_DEPOSIT,
+    CREDIT_CARD,
+    DEBIT_CARD,
+    WALLET
 
 }

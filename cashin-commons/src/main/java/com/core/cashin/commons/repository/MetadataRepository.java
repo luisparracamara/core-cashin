@@ -23,7 +23,7 @@ public interface MetadataRepository extends JpaRepository<GatewayMetadataEntity,
     @Query("SELECT gme FROM GatewayMetadataEntity gme " +
             "JOIN gme.gateway g " +
             "WHERE g.connectorName = :connectorName AND g.merchantId = :merchantId AND gme.metaKey = :metaKey")
-    Optional<GatewayMetadataEntity> findByGatewayConnectorNameAndMetaKey(
+    List<GatewayMetadataEntity> findByGatewayConnectorNameAndMetaKey(
             @Param("connectorName") String connectorName, @Param("merchantId") Long merchantId,
             @Param("metaKey") String metaKey);
 

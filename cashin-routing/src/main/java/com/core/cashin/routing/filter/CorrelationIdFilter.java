@@ -24,10 +24,14 @@ public class CorrelationIdFilter implements Filter {
 
         String correlationId = httpRequest.getHeader(CORRELATION_ID_HEADER);
         if (correlationId == null || correlationId.isBlank()) {
-            httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            httpResponse.setContentType("application/json");
-            httpResponse.getWriter().write("{\"code\":\"BAD_REQUEST\",\"message\":\"Missing required header: uuid\"}");
-            return;
+            if (httpRequest.getRequestURI().contains("/oauth/callback")) {
+                correlationId = java.util.UUID.randomUUID().toString();
+            } else {
+                httpResponse.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                httpResponse.setContentType("application/json");
+                httpResponse.getWriter().write("{\"code\":\"BAD_REQUEST\",\"message\":\"Missing required header: uuid\"}");
+                return;
+            }
         }
 
         MDC.put(CORRELATION_ID_MDC_KEY, correlationId);
