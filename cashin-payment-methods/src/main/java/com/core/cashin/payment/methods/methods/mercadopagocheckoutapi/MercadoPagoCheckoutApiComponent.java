@@ -68,4 +68,34 @@ public class MercadoPagoCheckoutApiComponent {
         throw new InternalServerException("Payment system " + getConnector().name() + " is not currently available", t);
     }
 
+    public MercadoPagoOrderResponse pollForTicketUrl(String orderId, String accessToken) {
+        int maxRetries = 3;
+        int delayMs = 2000;
+
+        for (int attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                Thread.sleep(delayMs);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+
+            MercadoPagoOrderResponse order = getOrder(orderId, accessToken);
+            log.debug("[MercadoPagoCheckoutApi] pollForTicketUrl attempt={} status={}", attempt, order.status());
+
+            boolean hasTicketUrl = order.transactions() != null
+                    && order.transactions().payments() != null
+                    && !order.transactions().payments().isEmpty()
+                    && order.transactions().payments().get(0).paymentMethod() != null
+                    && order.transactions().payments().get(0).paymentMethod().ticketUrl() != null;
+
+            if (hasTicketUrl) {
+                return order;
+            }
+        }
+
+        log.warn("[MercadoPagoCheckoutApi] pollForTicketUrl orderId={} ticket_url not available after {} retries", orderId, maxRetries);
+        return getOrder(orderId, accessToken);
+    }
+
 }

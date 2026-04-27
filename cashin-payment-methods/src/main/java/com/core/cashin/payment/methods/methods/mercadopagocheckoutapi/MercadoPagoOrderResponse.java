@@ -21,7 +21,12 @@ public record MercadoPagoOrderResponse(
     public record OrderPayment(
             @JsonProperty("id") String id,
             @JsonProperty("status") String status,
-            @JsonProperty("status_detail") String statusDetail
+            @JsonProperty("status_detail") String statusDetail,
+            @JsonProperty("payment_method") OrderPaymentMethodResponse paymentMethod
+    ) {}
+
+    public record OrderPaymentMethodResponse(
+            @JsonProperty("ticket_url") String ticketUrl
     ) {}
 
 }

@@ -36,12 +36,17 @@ public class MercadoPagoCheckoutApiMapper {
                 request.getPayer().getEmail()
         );
 
+        boolean isOfflinePayment = MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_BANK_TRANSFER.equals(cardType)
+                || MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_TICKET.equals(cardType);
+        String expirationTime = isOfflinePayment ? "P3D" : null;
+
         return new MercadoPagoOrderRequest(
                 MercadoPagoCheckoutApiConstants.ORDER_TYPE,
                 MercadoPagoCheckoutApiConstants.PROCESSING_MODE,
                 paymentId,
                 request.getAmount().toPlainString(),
                 "Pago " + request.getMerchant().getMerchantName(),
+                expirationTime,
                 payer,
                 new MercadoPagoOrderRequest.OrderTransactions(List.of(payment))
         );
@@ -53,6 +58,22 @@ public class MercadoPagoCheckoutApiMapper {
             return new MercadoPagoOrderRequest.OrderPaymentMethod(
                     MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_ACCOUNT_MONEY,
                     MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_ACCOUNT_MONEY,
+                    null,
+                    null
+            );
+        }
+        if (MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_BANK_TRANSFER.equals(cardType)) {
+            return new MercadoPagoOrderRequest.OrderPaymentMethod(
+                    MercadoPagoCheckoutApiConstants.PAYMENT_METHOD_CLABE,
+                    MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_BANK_TRANSFER,
+                    null,
+                    null
+            );
+        }
+        if (MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_TICKET.equals(cardType)) {
+            return new MercadoPagoOrderRequest.OrderPaymentMethod(
+                    paymentMethodId,
+                    cardType,
                     null,
                     null
             );
@@ -82,9 +103,17 @@ public class MercadoPagoCheckoutApiMapper {
                 .metadata(metadata)
                 .build();
 
+        String ticketUrl = orderResponse.transactions() != null
+                && orderResponse.transactions().payments() != null
+                && !orderResponse.transactions().payments().isEmpty()
+                && orderResponse.transactions().payments().get(0).paymentMethod() != null
+                ? orderResponse.transactions().payments().get(0).paymentMethod().ticketUrl()
+                : null;
+
         return DepositResponse.builder()
                 .depositId(paymentId)
                 .checkoutType(MercadoPagoCheckoutApiConstants.CHECKOUT_TYPE)
+                .redirectUrl(ticketUrl)
                 .paymentInfo(paymentInfo)
                 .build();
     }

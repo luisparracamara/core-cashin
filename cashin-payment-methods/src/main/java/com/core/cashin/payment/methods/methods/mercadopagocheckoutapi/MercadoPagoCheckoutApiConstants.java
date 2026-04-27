@@ -13,6 +13,11 @@ public final class MercadoPagoCheckoutApiConstants {
     public static final String PAYMENT_TYPE_CREDIT = "credit_card";
     public static final String PAYMENT_TYPE_DEBIT = "debit_card";
     public static final String PAYMENT_TYPE_ACCOUNT_MONEY = "account_money";
+    public static final String PAYMENT_TYPE_BANK_TRANSFER = "bank_transfer";
+    public static final String PAYMENT_TYPE_TICKET = "ticket";
+    // Payment method IDs
+    public static final String PAYMENT_METHOD_CLABE = "clabe";
+    public static final String PAYMENT_METHOD_OXXO = "oxxo";
 
     // Defaults
     public static final int DEFAULT_INSTALLMENTS = 1;

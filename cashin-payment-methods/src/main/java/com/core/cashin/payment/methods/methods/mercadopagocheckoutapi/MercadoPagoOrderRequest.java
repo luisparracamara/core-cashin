@@ -12,6 +12,7 @@ public record MercadoPagoOrderRequest(
         @JsonProperty("external_reference") String externalReference,
         @JsonProperty("total_amount") String totalAmount,
         @JsonProperty("description") String description,
+        @JsonProperty("expiration_time") String expirationTime,
         @JsonProperty("payer") OrderPayer payer,
         @JsonProperty("transactions") OrderTransactions transactions
 ) {
