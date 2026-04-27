@@ -69,6 +69,11 @@ public class MercadoPagoCheckoutApiDirector implements PaymentRedirector {
         MercadoPagoOrderResponse orderResponse = component.createOrder(orderRequest, accessToken, platformId, idempotencyKey);
         log.debug("[MercadoPagoCheckoutApi] orderResponse={}", utils.toJson(orderResponse));
 
+        if (CashInMethod.BANK_TRANSFER.equals(cashInMethod) || CashInMethod.VOUCHER.equals(cashInMethod)) {
+            orderResponse = component.pollForTicketUrl(orderResponse.id(), accessToken);
+            log.debug("[MercadoPagoCheckoutApi] orderResponse after polling={}", utils.toJson(orderResponse));
+        }
+
         DepositResponse response = mapper.buildDepositResponse(request, orderResponse, paymentEntity.getId(),
                 cashInMethod.name());
 
@@ -112,7 +117,12 @@ public class MercadoPagoCheckoutApiDirector implements PaymentRedirector {
         if (cardBrand == null || cardBrand.isBlank()) {
             throw new BadRequestException("paymentData.id (card brand) is required for " + getConnector().name());
         }
-        if (!MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_ACCOUNT_MONEY.equals(cardType)) {
+        if (MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_TICKET.equals(cardType)) {
+            if (!MercadoPagoCheckoutApiConstants.PAYMENT_METHOD_OXXO.equals(cardBrand)) {
+                throw new BadRequestException("Only oxxo is supported for ticket payments");
+            }
+        } else if (!MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_ACCOUNT_MONEY.equals(cardType)
+                && !MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_BANK_TRANSFER.equals(cardType)) {
             String cardToken = paymentData.get(MercadoPagoCheckoutApiConstants.CARD_TOKEN);
             if (cardToken == null || cardToken.isBlank()) {
                 throw new BadRequestException("paymentData.cardToken is required for card payments");
@@ -126,6 +136,8 @@ public class MercadoPagoCheckoutApiDirector implements PaymentRedirector {
             case MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_CREDIT -> CashInMethod.CREDIT_CARD;
             case MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_DEBIT -> CashInMethod.DEBIT_CARD;
             case MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_ACCOUNT_MONEY -> CashInMethod.WALLET;
+            case MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_BANK_TRANSFER -> CashInMethod.BANK_TRANSFER;
+            case MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_TICKET -> CashInMethod.VOUCHER;
             default -> throw new BadRequestException("Unsupported cardType: " + cardType);
         };
     }
