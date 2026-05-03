@@ -68,21 +68,18 @@ public class MercadoPagoCheckoutProDirector implements PaymentRedirector {
         DepositResponse response;
         MercadoPagoCheckoutProPreferenceResponse mercadoPagoResponse = null;
 
-        log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro {}", getConnector());
-        log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro request {}", utils.toJson(request));
+        log.info("[MercadoPagoCheckoutPro] processing payment paymentId={}", paymentEntity.getId());
 
         MPRequestOptions mpRequestOptions = mercadoPagoCheckoutProMapper.buildMPRequestOptions(
                 request.getGatewayMetadata().get(GatewayMetadataEnum.ACCESS_TOKEN.name()),
                 request.getGatewayMetadata().get(GatewayMetadataEnum.PLATFORM_ID.name()));
-        log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro mpRequestOptions {}", utils.toJson(mpRequestOptions));
 
         PreferenceRequest preferenceRequest = mercadoPagoCheckoutProMapper.buildPreferenceRequest(request, String.valueOf(paymentEntity.getId()));
-        log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro preferenceRequest {}", utils.toJson(preferenceRequest));
+        log.debug("[MercadoPagoCheckoutPro] preferenceRequest={}", utils.toJson(preferenceRequest));
 
         Preference preference = mercadoPagoCheckoutProComponent.callProvider(preferenceRequest, mpRequestOptions);
         mercadoPagoResponse = mercadoPagoCheckoutProMapper.buildMercadoPagoCheckoutProPreferenceResponse(preference);
-        log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro mercadoPagoResponse {}",
-                utils.toJson(mercadoPagoResponse));
+        log.debug("[MercadoPagoCheckoutPro] preferenceResponse={}", utils.toJson(mercadoPagoResponse));
 
         response = mercadoPagoCheckoutProMapper.buildDepositResponse(request, mercadoPagoResponse, paymentEntity.getId(),
                 getCashInMethod().name());
@@ -90,8 +87,6 @@ public class MercadoPagoCheckoutProDirector implements PaymentRedirector {
         PaymentCashinEntity paymentCashinEntity = mercadoPagoCheckoutProMapper.buildPaymentCashinEntity(
                 mercadoPagoResponse, paymentEntity, paymentEntity.getCreatedAt(), utils.toJson(mercadoPagoResponse));
         paymentOperationService.savePaymentCashinPending(paymentEntity, paymentCashinEntity);
-        log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro operation saved in database idPayment: {}",
-                paymentEntity.getTransactionId());
 
         return response;
     }
@@ -113,10 +108,15 @@ public class MercadoPagoCheckoutProDirector implements PaymentRedirector {
 
         try {
             MPResultsResourcesPage<Payment> status = client.search(searchRequest, mpRequestOptions);
-            log.debug("[MercadoPagoCheckoutPro] MercadoPagoCheckoutPro checkStatus result {} payments found",
-                    status.getResults().size());
+            log.debug("[MercadoPagoCheckoutPro] checkStatus id={} paymentsFound={}", id, status.getResults().size());
             return !status.getResults().isEmpty();
-        } catch (MPException | MPApiException e) {
+        } catch (MPApiException e) {
+            log.error("[MercadoPagoCheckoutPro] checkStatus failed status={} id={} connector={} message={}",
+                    e.getStatusCode(), id, getConnector().name(), e.getMessage(), e);
+            throw new BadRequestException("PROVIDER ERROR CHECK STATUS WITH ID: " + id + " " + getConnector().name(), e);
+        } catch (MPException e) {
+            log.error("[MercadoPagoCheckoutPro] checkStatus connection error id={} connector={} cause={}",
+                    id, getConnector().name(), e.getMessage(), e);
             throw new BadRequestException("PROVIDER ERROR CHECK STATUS WITH ID: " + id + " " + getConnector().name(), e);
         }
     }

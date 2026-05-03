@@ -11,6 +11,8 @@ import com.core.cashin.payment.methods.methods.mercadopagocheckoutpro.MercadoPag
 import com.mercadopago.client.preference.PreferenceBackUrlsRequest;
 import com.mercadopago.client.preference.PreferenceItemRequest;
 import com.mercadopago.client.preference.PreferencePayerRequest;
+import com.mercadopago.client.preference.PreferencePaymentMethodsRequest;
+import com.mercadopago.client.preference.PreferencePaymentTypeRequest;
 import com.mercadopago.client.preference.PreferenceRequest;
 import com.mercadopago.core.MPRequestOptions;
 import com.mercadopago.resources.preference.Preference;
@@ -54,6 +56,16 @@ public class MercadoPagoCheckoutProMapper {
                 .email(request.getPayer().getEmail())
                 .build();
 
+        List<PreferencePaymentTypeRequest> excludedPaymentTypes = List.of(
+                PreferencePaymentTypeRequest.builder().id(MercadoPagoConstants.EXCLUDED_PAYMENT_TYPE_TICKET).build(),
+                PreferencePaymentTypeRequest.builder().id(MercadoPagoConstants.EXCLUDED_PAYMENT_TYPE_ATM).build()
+        );
+
+        PreferencePaymentMethodsRequest paymentMethodsRequest = PreferencePaymentMethodsRequest.builder()
+                .excludedPaymentTypes(excludedPaymentTypes)
+                .installments(MercadoPagoConstants.MAX_INSTALLMENTS)
+                .build();
+
         return PreferenceRequest.builder()
                 .items(items)
                 .binaryMode(true)
@@ -65,6 +77,7 @@ public class MercadoPagoCheckoutProMapper {
                 .expirationDateTo(userDateTime.plus(Duration.ofHours(24)).atOffset(ZoneOffset.UTC))
                 .statementDescriptor(request.getMerchant().getMerchantName())
                 .payer(payerRequest)
+                .paymentMethods(paymentMethodsRequest)
                 .build();
 
     }

@@ -11,6 +11,11 @@ public final class MercadoPagoConstants {
     public static final String DESCRIPTION_PREFIX = "Reference: ";
     public static final String EXTERNAL_REFERENCE_KEY = "external_reference";
 
+    // Payment method restrictions
+    public static final String EXCLUDED_PAYMENT_TYPE_TICKET = "ticket";
+    public static final String EXCLUDED_PAYMENT_TYPE_ATM = "atm";
+    public static final int MAX_INSTALLMENTS = 1;
+
     // OAuth
     public static final String PLATFORM_ID = "mp";
     public static final String AUTH_URL = "https://auth.mercadopago.com/authorization";

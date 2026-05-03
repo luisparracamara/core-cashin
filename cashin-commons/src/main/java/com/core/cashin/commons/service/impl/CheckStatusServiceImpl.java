@@ -24,10 +24,14 @@ public class CheckStatusServiceImpl implements CheckStatusService {
 
     @Override
     public CheckStatusResponse checkStatusDeposit(long id) {
+        log.debug("[CheckStatus] checking payment paymentId={}", id);
         MerchantFeePayment feePayment = paymentRepository.findByPaymentId(id)
-                        .orElseThrow(() -> new NotFoundException("Payment was not found with id: "+id));
+                .orElseThrow(() -> {
+                    log.warn("[CheckStatus] payment not found paymentId={}", id);
+                    return new NotFoundException("Payment was not found with id: " + id);
+                });
+        log.debug("[CheckStatus] payment found paymentId={} status={}", id, feePayment.getPayment().getStatus());
         return checkStatusMapper.buildStatusResponse(feePayment);
-
     }
 
 }

@@ -5,6 +5,7 @@ import com.core.cashin.commons.exception.InternalServerException;
 import com.core.cashin.commons.exception.NotFoundException;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.MDC;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -19,7 +20,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(NotFoundException ex) {
-        log.error("NotFoundException", ex);
+        log.error("[Exception] type=NotFoundException correlationId={} message={}",
+                MDC.get("correlationId"), ex.getMessage(), ex);
         return ResponseEntity
                 .status(HttpStatus.NOT_FOUND)
                 .body(new ErrorResponse("NOT_FOUND", ex.getMessage()));
@@ -27,7 +29,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InternalServerException.class)
     public ResponseEntity<ErrorResponse> handleUnexpected(Exception ex) {
-        log.error("InternalServerException", ex);
+        log.error("[Exception] type=InternalServerException correlationId={} message={}",
+                MDC.get("correlationId"), ex.getMessage(), ex);
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new ErrorResponse("INTERNAL_SERVER_ERROR", ex.getMessage()));
@@ -35,7 +38,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BadRequestException.class)
     public ResponseEntity<ErrorResponse> handleBadRequest(Exception ex) {
-        log.error("BadRequestException", ex);
+        log.error("[Exception] type=BadRequestException correlationId={} message={}",
+                MDC.get("correlationId"), ex.getMessage(), ex);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("BAD_REQUEST", ex.getMessage()));
@@ -46,7 +50,8 @@ public class GlobalExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(e -> e.getField() + ": " + e.getDefaultMessage())
                 .collect(Collectors.joining(", "));
-        log.error("ValidationException: {}", message);
+        log.error("[Exception] type=ValidationException correlationId={} fields={}",
+                MDC.get("correlationId"), message);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("VALIDATION_ERROR", message));
@@ -57,10 +62,20 @@ public class GlobalExceptionHandler {
         String message = ex.getConstraintViolations().stream()
                 .map(v -> v.getMessage())
                 .collect(Collectors.joining(", "));
-        log.error("ConstraintViolationException: {}", message);
+        log.error("[Exception] type=ConstraintViolationException correlationId={} violations={}",
+                MDC.get("correlationId"), message);
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("VALIDATION_ERROR", message));
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<ErrorResponse> handleGeneric(Exception ex) {
+        log.error("[Exception] type=UnexpectedException correlationId={} message={}",
+                MDC.get("correlationId"), ex.getMessage(), ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(new ErrorResponse("INTERNAL_SERVER_ERROR", "Unexpected error"));
     }
 
     public record ErrorResponse(

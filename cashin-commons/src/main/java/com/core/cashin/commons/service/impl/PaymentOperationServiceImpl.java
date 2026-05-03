@@ -10,12 +10,14 @@ import com.core.cashin.commons.repository.PaymentCashinRepository;
 import com.core.cashin.commons.repository.PaymentFeeRepository;
 import com.core.cashin.commons.repository.PaymentRepository;
 import com.core.cashin.commons.service.PaymentOperationService;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
 @Service
+@Slf4j
 public class PaymentOperationServiceImpl implements PaymentOperationService {
 
     private final PayerRepository payerRepository;
@@ -37,6 +39,8 @@ public class PaymentOperationServiceImpl implements PaymentOperationService {
         paymentRepository.save(paymentEntity);
         paymentFeeRepository.save(paymentEntity.getPaymentFeeEntity());
         paymentCashinRepository.save(paymentCashinEntity);
+        log.debug("[PaymentOperation] savePaymentCashin saved paymentId={} transactionId={} orderId={}",
+                paymentEntity.getId(), paymentEntity.getTransactionId(), paymentCashinEntity.getExternalReference());
     }
 
     @Override
@@ -45,6 +49,8 @@ public class PaymentOperationServiceImpl implements PaymentOperationService {
         paymentEntity.setPayerEntity(savePayer(payerEntity));
         paymentEntity.setPaymentFeeEntity(savePaymentFee(paymentEntity.getPaymentFeeEntity()));
         paymentRepository.save(paymentEntity);
+        log.debug("[PaymentOperation] payment initial save paymentId={} transactionId={}",
+                paymentEntity.getId(), paymentEntity.getTransactionId());
     }
 
     @Override
@@ -54,12 +60,22 @@ public class PaymentOperationServiceImpl implements PaymentOperationService {
         paymentEntity.setUpdatedAt(LocalDateTime.now());
         paymentCashinRepository.save(paymentCashinEntity);
         paymentRepository.save(paymentEntity);
+        log.debug("[PaymentOperation] payment saved as PENDING paymentId={} orderId={}",
+                paymentEntity.getId(), paymentCashinEntity.getExternalReference());
     }
 
     private PayerEntity savePayer(PayerEntity payerEntity) {
         return payerRepository
                 .findByDocument(payerEntity.getDocument())
-                .orElseGet(() -> payerRepository.save(payerEntity));
+                .map(existing -> {
+                    log.debug("[PaymentOperation] payer already exists payerId={} document={}",
+                            existing.getId(), payerEntity.getDocument());
+                    return existing;
+                })
+                .orElseGet(() -> {
+                    log.debug("[PaymentOperation] creating new payer document={}", payerEntity.getDocument());
+                    return payerRepository.save(payerEntity);
+                });
     }
 
     private PaymentFeeEntity savePaymentFee(PaymentFeeEntity paymentFeeEntity) {

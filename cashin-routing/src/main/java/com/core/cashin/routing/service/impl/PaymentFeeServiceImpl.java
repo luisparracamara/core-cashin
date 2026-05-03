@@ -35,16 +35,22 @@ public class PaymentFeeServiceImpl implements PaymentFeeService {
     @Transactional(readOnly = true)
     public PaymentFeeEntity calculatePaymentFee(DepositRequest request) {
         BigDecimal amount = request.getAmount();
-        MerchantCostEntity merchantCostEntity = merchantCostRepository.findByMerchantId(request.getMerchant().getMerchantId()).
-                orElseThrow(() -> new NotFoundException("Merchant fee configuration not found"));
+        Long merchantId = request.getMerchant().getMerchantId();
+        log.debug("[Fee] calculating fee merchantId={} amount={} currency={}", merchantId, amount, request.getCurrency());
+
+        MerchantCostEntity merchantCostEntity = merchantCostRepository.findByMerchantId(merchantId)
+                .orElseThrow(() -> {
+                    log.warn("[Fee] fee config not found merchantId={}", merchantId);
+                    return new NotFoundException("Merchant fee configuration not found");
+                });
+
         PaymentFeeEntity paymentFeeEntity;
-        Merchant merchant = entityManager.getReference(Merchant.class, request.getMerchant().getMerchantId());
+        Merchant merchant = entityManager.getReference(Merchant.class, merchantId);
 
         switch (merchantCostEntity.getFeeType()) {
             case FIXED -> {
                 BigDecimal grossAmount = amount.add(merchantCostEntity.getFixRate());
-                paymentFeeEntity = buildPaymentFeeEntity(grossAmount, merchantCostEntity.getFixRate(),
-                        request, merchant);
+                paymentFeeEntity = buildPaymentFeeEntity(grossAmount, merchantCostEntity.getFixRate(), request, merchant);
             }
             case PERCENTAGE -> {
                 BigDecimal percentage = request.getAmount().multiply(BigDecimal.valueOf(merchantCostEntity.getFeeRate()))
@@ -57,10 +63,15 @@ public class PaymentFeeServiceImpl implements PaymentFeeService {
                 mixed = mixed.add(merchantCostEntity.getFixRate());
                 paymentFeeEntity = buildPaymentFeeEntity(mixed.add(amount), mixed, request, merchant);
             }
-            default -> throw new InternalServerException("Unsupported fee type: " + merchantCostEntity.getFeeType());
+            default -> {
+                log.error("[Fee] unsupported fee type={} merchantId={}", merchantCostEntity.getFeeType(), merchantId);
+                throw new InternalServerException("Unsupported fee type: " + merchantCostEntity.getFeeType());
+            }
         }
 
-        log.info("Fee calculated successfully");
+        log.debug("[Fee] fee calculated merchantId={} feeType={} netAmount={} feeAmount={} grossAmount={}",
+                merchantId, merchantCostEntity.getFeeType(), paymentFeeEntity.getNetAmount(),
+                paymentFeeEntity.getFeeAmount(), paymentFeeEntity.getGrossAmount());
         return paymentFeeEntity;
     }
 
