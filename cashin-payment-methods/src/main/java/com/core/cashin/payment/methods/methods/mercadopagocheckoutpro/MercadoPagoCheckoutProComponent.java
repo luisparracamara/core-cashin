@@ -28,16 +28,20 @@ public class MercadoPagoCheckoutProComponent {
             return client.create(preferenceRequest, mpRequestOptions);
         } catch (MPApiException e) {
             if (e.getStatusCode() < 500) {
+                log.error("[MP] callProvider failed status={} connector={} message={}",
+                        e.getStatusCode(), getConnector().name(), e.getMessage());
                 throw new BadRequestException("Invalid data sent to MercadoPago", e);
             }
+            log.error("[MP] callProvider provider error status={} connector={}", e.getStatusCode(), getConnector().name(), e);
             throw new InternalServerException("PROVIDER ERROR: " + getConnector().name(), e);
         } catch (MPException e) {
+            log.error("[MP] callProvider connection error connector={} cause={}", getConnector().name(), e.getMessage(), e);
             throw new InternalServerException("PROVIDER ERROR: " + getConnector().name(), e);
         }
     }
 
     public Preference fallbackCallProvider(PreferenceRequest preferenceRequest, MPRequestOptions mpRequestOptions, Throwable t) {
-        log.error("Circuit Breaker fallback in: {} {}", getConnector().name(), t.getMessage());
+        log.error("[MP] circuit breaker open connector={} cause={}", getConnector().name(), t.getMessage(), t);
         throw new InternalServerException("Payment system " + getConnector().name() + " is not currently available", t);
     }
 

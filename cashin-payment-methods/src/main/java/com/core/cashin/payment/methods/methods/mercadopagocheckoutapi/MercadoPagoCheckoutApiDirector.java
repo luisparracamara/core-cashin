@@ -13,6 +13,7 @@ import com.core.cashin.commons.service.PaymentOperationService;
 import com.core.cashin.commons.service.PaymentRedirector;
 import com.core.cashin.commons.utils.Utils;
 import com.core.cashin.payment.methods.mapper.MercadoPagoCheckoutApiMapper;
+import com.core.cashin.payment.methods.methods.mercadopagocheckoutpro.MercadoPagoCheckoutProDirector;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.MDC;
 import org.springframework.stereotype.Service;
@@ -28,16 +29,19 @@ public class MercadoPagoCheckoutApiDirector implements PaymentRedirector {
     private final PaymentOperationService paymentOperationService;
     private final MetadataService metadataService;
     private final MercadoPagoCheckoutApiComponent component;
+    private final MercadoPagoCheckoutProDirector checkoutProDirector;
 
     public MercadoPagoCheckoutApiDirector(Utils utils, MercadoPagoCheckoutApiMapper mapper,
                                            PaymentOperationService paymentOperationService,
                                            MetadataService metadataService,
-                                           MercadoPagoCheckoutApiComponent component) {
+                                           MercadoPagoCheckoutApiComponent component,
+                                           MercadoPagoCheckoutProDirector checkoutProDirector) {
         this.utils = utils;
         this.mapper = mapper;
         this.paymentOperationService = paymentOperationService;
         this.metadataService = metadataService;
         this.component = component;
+        this.checkoutProDirector = checkoutProDirector;
     }
 
     @Override
@@ -52,15 +56,19 @@ public class MercadoPagoCheckoutApiDirector implements PaymentRedirector {
 
     @Override
     public DepositResponse create(DepositRequest request, PaymentEntity paymentEntity) {
-        log.debug("[MercadoPagoCheckoutApi] create connector={}", getConnector());
-        log.debug("[MercadoPagoCheckoutApi] request={}", utils.toJson(request));
-
         validatePaymentData(request);
+
+        String cardType = request.getPaymentData().get(MercadoPagoCheckoutApiConstants.CARD_TYPE);
+        if (MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_ACCOUNT_MONEY.equals(cardType)) {
+            log.info("[MercadoPagoCheckoutApi] account_money detected, delegating to CheckoutPro paymentId={}", paymentEntity.getId());
+            return checkoutProDirector.create(request, paymentEntity);
+        }
 
         String accessToken = request.getGatewayMetadata().get(GatewayMetadataEnum.ACCESS_TOKEN.name());
         String platformId = request.getGatewayMetadata().get(GatewayMetadataEnum.PLATFORM_ID.name());
         String paymentId = String.valueOf(paymentEntity.getId());
         CashInMethod cashInMethod = resolveCashInMethod(request);
+        log.info("[MercadoPagoCheckoutApi] processing payment paymentId={} cashInMethod={}", paymentEntity.getId(), cashInMethod);
 
         String idempotencyKey = MDC.get("correlationId");
         MercadoPagoOrderRequest orderRequest = mapper.buildOrderRequest(request, paymentId);
@@ -81,9 +89,6 @@ public class MercadoPagoCheckoutApiDirector implements PaymentRedirector {
                 orderResponse, paymentEntity, paymentEntity.getCreatedAt(), utils.toJson(orderResponse));
         paymentOperationService.savePaymentCashinPending(paymentEntity, paymentCashinEntity);
 
-        log.debug("[MercadoPagoCheckoutApi] saved paymentId={} orderId={}",
-                paymentEntity.getId(), orderResponse.id());
-
         return response;
     }
 
@@ -102,29 +107,35 @@ public class MercadoPagoCheckoutApiDirector implements PaymentRedirector {
 
     private void validatePaymentData(DepositRequest request) {
         if (request.getPayer() == null || request.getPayer().getEmail() == null || request.getPayer().getEmail().isBlank()) {
+            log.warn("[MercadoPagoCheckoutApi] validation failed field=payer.email connector={}", getConnector().name());
             throw new BadRequestException("payer.email is required for " + getConnector().name());
         }
 
         Map<String, String> paymentData = request.getPaymentData();
         if (paymentData == null || paymentData.isEmpty()) {
+            log.warn("[MercadoPagoCheckoutApi] validation failed field=paymentData connector={}", getConnector().name());
             throw new BadRequestException("paymentData is required for " + getConnector().name());
         }
         String cardType = paymentData.get(MercadoPagoCheckoutApiConstants.CARD_TYPE);
         if (cardType == null || cardType.isBlank()) {
+            log.warn("[MercadoPagoCheckoutApi] validation failed field=cardType connector={}", getConnector().name());
             throw new BadRequestException("paymentData.cardType is required for " + getConnector().name());
         }
         String cardBrand = paymentData.get(MercadoPagoCheckoutApiConstants.CARD_BRAND);
         if (cardBrand == null || cardBrand.isBlank()) {
+            log.warn("[MercadoPagoCheckoutApi] validation failed field=cardBrand cardType={}", cardType);
             throw new BadRequestException("paymentData.id (card brand) is required for " + getConnector().name());
         }
         if (MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_TICKET.equals(cardType)) {
             if (!MercadoPagoCheckoutApiConstants.PAYMENT_METHOD_OXXO.equals(cardBrand)) {
+                log.warn("[MercadoPagoCheckoutApi] unsupported ticket method id={}", cardBrand);
                 throw new BadRequestException("Only oxxo is supported for ticket payments");
             }
         } else if (!MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_ACCOUNT_MONEY.equals(cardType)
                 && !MercadoPagoCheckoutApiConstants.PAYMENT_TYPE_BANK_TRANSFER.equals(cardType)) {
             String cardToken = paymentData.get(MercadoPagoCheckoutApiConstants.CARD_TOKEN);
             if (cardToken == null || cardToken.isBlank()) {
+                log.warn("[MercadoPagoCheckoutApi] validation failed field=cardToken cardType={}", cardType);
                 throw new BadRequestException("paymentData.cardToken is required for card payments");
             }
         }

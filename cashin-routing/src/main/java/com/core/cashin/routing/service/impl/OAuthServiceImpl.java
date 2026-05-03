@@ -35,6 +35,7 @@ public class OAuthServiceImpl implements OAuthService {
         ConnectorEnum connectorEnum = ConnectorEnum.fromDisplayName(connector);
 
         if (!ConnectorEnum.OAUTH_CAPABLE.contains(connectorEnum)) {
+            log.warn("[OAuthService] unsupported connector for OAuth connector={}", connector);
             throw new BadRequestException("Connector does not support OAuth: " + connector);
         }
 
@@ -57,6 +58,7 @@ public class OAuthServiceImpl implements OAuthService {
     @Override
     public OAuthTokenResponse handleCallback(String code, String state) {
         if (!stateStore.consumeIfValid(state)) {
+            log.warn("[OAuthService] invalid or expired OAuth state state={}", state);
             throw new BadRequestException("Invalid or expired OAuth state");
         }
         Long merchantId = extractMerchantId(state);
@@ -76,6 +78,7 @@ public class OAuthServiceImpl implements OAuthService {
         try {
             return Long.parseLong(state.split(":")[0]);
         } catch (Exception e) {
+            log.error("[OAuthService] failed to extract merchantId from state cause={}", e.getMessage());
             throw new IllegalArgumentException("Invalid state parameter: " + state);
         }
     }
@@ -84,6 +87,7 @@ public class OAuthServiceImpl implements OAuthService {
         try {
             return state.split(":")[1];
         } catch (Exception e) {
+            log.error("[OAuthService] failed to extract connector from state cause={}", e.getMessage());
             throw new IllegalArgumentException("Invalid state parameter, connector missing: " + state);
         }
     }
@@ -102,6 +106,7 @@ public class OAuthServiceImpl implements OAuthService {
         String refreshToken = metadata.get(GatewayMetadataEnum.REFRESH_TOKEN.name());
 
         if (refreshToken == null) {
+            log.warn("[OAuthService] no refresh token found connector={} merchantId={}", connector, merchantId);
             throw new BadRequestException("No refresh token found for connector: " + connector);
         }
 
@@ -119,14 +124,18 @@ public class OAuthServiceImpl implements OAuthService {
         Map<String, String> metadata = metadataService.retrieveGatewayMetadata(connectorEnum.getName(), merchantId);
 
         if (!metadata.containsKey(GatewayMetadataEnum.ACCESS_TOKEN.name())) {
+            log.debug("[OAuthService] isConnected=false no access token connector={} merchantId={}", connector, merchantId);
             return false;
         }
 
         String expiresAt = metadata.get(GatewayMetadataEnum.TOKEN_EXPIRES_AT.name());
         if (expiresAt != null) {
-            return Instant.parse(expiresAt).isAfter(Instant.now());
+            boolean connected = Instant.parse(expiresAt).isAfter(Instant.now());
+            log.debug("[OAuthService] isConnected={} connector={} merchantId={} expiresAt={}", connected, connector, merchantId, expiresAt);
+            return connected;
         }
 
+        log.debug("[OAuthService] isConnected=true connector={} merchantId={}", connector, merchantId);
         return true;
     }
 

@@ -33,9 +33,9 @@ public class DepositController {
     public ResponseEntity<DepositResponse> createDeposit(@RequestBody @Valid DepositRequest depositRequest,
                                                          HttpServletRequest httpServletRequest,
                                                          @ValidHeaders @RequestHeader Map<String, String> headers) {
-        log.debug("Request CONTROLLER {}", utils.toJson(depositRequest));
+        log.debug("[Deposit] request={}", utils.toJson(depositRequest));
         DepositResponse depositResponse = routingService.createDeposit(depositRequest, httpServletRequest,  headers);
-        log.debug("Response CONTROLLER {}", utils.toJson(depositResponse));
+        log.debug("[Deposit] response={}", utils.toJson(depositResponse));
         return ResponseEntity.ok(depositResponse);
     }
 

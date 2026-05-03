@@ -9,8 +9,6 @@ import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.util.UUID;
-
 @Component
 @Slf4j
 public class MercadoPagoCheckoutApiComponent {
@@ -33,8 +31,10 @@ public class MercadoPagoCheckoutApiComponent {
             return client.createOrder(authorization, platformId, idempotencyKey, request);
         } catch (FeignException e) {
             if (e.status() >= 400 && e.status() < 500) {
+                log.error("[MP] createOrder failed status={} connector={} body={}", e.status(), getConnector().name(), e.contentUTF8());
                 throw new BadRequestException("Payment failed [" + e.status() + "]: " + e.contentUTF8(), e);
             }
+            log.error("[MP] createOrder provider error status={} connector={}", e.status(), getConnector().name(), e);
             throw new InternalServerException("PROVIDER ERROR: " + getConnector().name(), e);
         }
     }
@@ -44,7 +44,7 @@ public class MercadoPagoCheckoutApiComponent {
         if (t instanceof BadRequestException badRequest) {
             throw badRequest;
         }
-        log.error("Circuit Breaker fallback in: {} {}", getConnector().name(), t.getMessage());
+        log.error("[MP] circuit breaker open connector={} cause={}", getConnector().name(), t.getMessage(), t);
         throw new InternalServerException("Payment system " + getConnector().name() + " is not currently available", t);
     }
 
@@ -54,8 +54,10 @@ public class MercadoPagoCheckoutApiComponent {
             String authorization = MercadoPagoCheckoutApiConstants.BEARER_PREFIX + accessToken;
             return client.getOrder(authorization, orderId);
         } catch (FeignException.NotFound e) {
+            log.warn("[MP] order not found orderId={}", orderId);
             throw new NotFoundException("Order not found: " + orderId);
         } catch (FeignException e) {
+            log.error("[MP] getOrder failed status={} orderId={} connector={}", e.status(), orderId, getConnector().name(), e);
             throw new InternalServerException("PROVIDER ERROR: " + getConnector().name(), e);
         }
     }
@@ -64,7 +66,7 @@ public class MercadoPagoCheckoutApiComponent {
         if (t instanceof NotFoundException notFound) {
             throw notFound;
         }
-        log.error("Circuit Breaker fallback in: {} {}", getConnector().name(), t.getMessage());
+        log.error("[MP] circuit breaker open connector={} orderId={} cause={}", getConnector().name(), orderId, t.getMessage(), t);
         throw new InternalServerException("Payment system " + getConnector().name() + " is not currently available", t);
     }
 
@@ -76,6 +78,7 @@ public class MercadoPagoCheckoutApiComponent {
             try {
                 Thread.sleep(delayMs);
             } catch (InterruptedException e) {
+                log.warn("[MP] pollForTicketUrl interrupted orderId={} attempt={}", orderId, attempt);
                 Thread.currentThread().interrupt();
                 break;
             }
