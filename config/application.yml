@@ -41,6 +41,12 @@ mercadopago:
   redirect-uri: ${MERCADOPAGO_REDIRECT_URI:https://unculturable-tyree-nonveritably.ngrok-free.dev/api/v1/oauth/callback}
   api-url: ${MERCADOPAGO_API_URL:https://api.mercadopago.com}
 
+stripe:
+  platform-secret-key: ${STRIPE_PLATFORM_SECRET_KEY:sk_test_51TSudNIRquPiF7CBtOfooB9MVMq2AxY6kaHvrPDDNpst77H3ZRE5TOzAj50CFcBuSG96TZICtlTVZu5x6qVa5S8j00phRoB0zu}
+  client-id: ${STRIPE_CLIENT_ID:ca_URoIbAWeTJ2I7ZYC6qBppxbdozTk4NNv}
+  redirect-uri: ${STRIPE_REDIRECT_URI:https://unculturable-tyree-nonveritably.ngrok-free.dev/api/v1/oauth/callback}
+  connect-url: ${STRIPE_CONNECT_URL:https://connect.stripe.com}
+
 jobs:
   created-to-cancelled:
     cron: "0 0 */8 * * *"
@@ -96,6 +102,26 @@ resilience4j:
           - feign.FeignException.InternalServerError
           - feign.FeignException.ServiceUnavailable
           - feign.FeignException.GatewayTimeout
+          - java.util.concurrent.TimeoutException
+          - java.io.IOException
+          - com.core.cashin.commons.exception.InternalServerException
+        ignoreExceptions:
+          - com.core.cashin.commons.exception.BadRequestException
+          - com.core.cashin.commons.exception.NotFoundException
+
+      stripeCB:
+        slidingWindowType: COUNT_BASED
+        slidingWindowSize: 20
+        minimumNumberOfCalls: 10
+        failureRateThreshold: 50
+        slowCallDurationThreshold: 3s
+        slowCallRateThreshold: 50
+        waitDurationInOpenState: 30s
+        permittedNumberOfCallsInHalfOpenState: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        recordExceptions:
+          - com.stripe.exception.ApiConnectionException
+          - com.stripe.exception.RateLimitException
           - java.util.concurrent.TimeoutException
           - java.io.IOException
           - com.core.cashin.commons.exception.InternalServerException

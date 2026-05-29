@@ -21,7 +21,8 @@ public enum ConnectorEnum {
 
     public static final Set<ConnectorEnum> OAUTH_CAPABLE = Set.of(
             MERCADO_PAGO_CHECKOUT_PRO,
-            MERCADO_PAGO_CHECKOUT_API
+            MERCADO_PAGO_CHECKOUT_API,
+            STRIPE
     );
 
     ConnectorEnum(String name) {

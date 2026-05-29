@@ -148,6 +148,7 @@ public class OAuthServiceImpl implements OAuthService {
         metadataService.deleteMetadata(connectorName, merchantId, GatewayMetadataEnum.REFRESH_TOKEN.name());
         metadataService.deleteMetadata(connectorName, merchantId, GatewayMetadataEnum.TOKEN_EXPIRES_AT.name());
         metadataService.deleteMetadata(connectorName, merchantId, GatewayMetadataEnum.USER_ID.name());
+        metadataService.deleteMetadata(connectorName, merchantId, GatewayMetadataEnum.ACCOUNT_ID.name());
         metadataService.deleteMetadata(connectorName, merchantId, GatewayMetadataEnum.PUBLIC_KEY.name());
 
         log.debug("[OAuthService] Disconnected connector {} merchantId {}", connectorName, merchantId);
@@ -175,6 +176,11 @@ public class OAuthServiceImpl implements OAuthService {
         if (tokenResponse.getUserId() != null) {
             metadataService.saveOrUpdateMetadata(connectorName, merchantId,
                     GatewayMetadataEnum.USER_ID.name(), tokenResponse.getUserId().toString());
+        }
+
+        if (tokenResponse.getAccountId() != null) {
+            metadataService.saveOrUpdateMetadata(connectorName, merchantId,
+                    GatewayMetadataEnum.ACCOUNT_ID.name(), tokenResponse.getAccountId());
         }
 
         if (tokenResponse.getPublicKey() != null) {

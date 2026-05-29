@@ -11,6 +11,7 @@ public enum GatewayMetadataEnum {
     PUBLIC_KEY,
     PRIVATE_KEY,
     USER_ID,
+    ACCOUNT_ID,       // Stripe: acct_xxx (used as Stripe-Account header)
     SECRET,
     SECRET_KEY
 }
